@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>5295 STUDIO</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+    <style>
+        /* --- 5295 專屬視覺系統 --- */
+        :root {
+            --bg-color: #050505; /* 深邃黑 */
+            --gold-color: #d1c1a5; /* Logo 的香檳金 */
+            --red-accent: #d92128; /* Logo 的點綴紅 */
+            --text-color: #f0f0f0;
+            --box-bg: rgba(209, 193, 165, 0.05);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Noto Sans TC', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* 頂部導覽列 / Logo 區 */
+        header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(209, 193, 165, 0.3);
+            background: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(20,20,20,1) 100%);
+        }
+
+        .logo-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            color: var(--gold-color);
+            margin: 0;
+        }
+        
+        .logo-text span {
+            color: var(--red-accent); /* 那個紅色的 9 的概念 */
+        }
+
+        /* 內容容器 */
+        .container {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* 科技感卡片設計 */
+        .tech-card {
+            background-color: var(--box-bg);
+            border: 1px solid var(--gold-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(209, 193, 165, 0.1);
+            position: relative;
+        }
+
+        /* 裝飾性科技邊角 */
+        .tech-card::before {
+            content: '';
+            position: absolute;
+            top: -1px; left: -1px;
+            width: 10px; height: 10px;
+            border-top: 2px solid var(--red-accent);
+            border-left: 2px solid var(--red-accent);
+        }
+
+        h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--gold-color);
+            border-bottom: 1px dashed var(--gold-color);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        /* 表單元素 */
+        label {
+            display: block;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        select, input[type="text"], input[type="date"] {
+            width: 100%;
+            padding: 12px;
+            margin-top: 5px;
+            background-color: rgba(0,0,0,0.5);
+            border: 1px solid var(--gold-color);
+            color: var(--gold-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            box-shadow: 0 0 8px var(--gold-color);
+        }
+
+        /* 按鈕設計 */
+        .btn-primary {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-top: 25px;
+            background-color: var(--gold-color);
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            font-family: 'Orbitron', 'Noto Sans TC', sans-serif;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+            background-color: #bfae92;
+        }
+
+        /* 隱藏區塊用 */
+        .hidden {
+            display: none;
+        }
+
+        /* 載入畫面 */
+        #loading-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            color: var(--gold-color);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loading-screen">SYSTEM LOADING...</div>
+
+    <header>
+        <h1 class="logo-text">52<span>9</span>5 STUDIO</h1>
+    </header>
+
+    <div class="container">
+        <div id="view-booking" class="hidden">
+            <div class="tech-card">
+                <h2>SERVICE BOOKING</h2>
+                <p style="font-size: 14px; color: #ccc;">歡迎預約，請選擇您的愛車與服務項目。</p>
+                
+                <form id="booking-form">
+                    <label>選擇愛車</label>
+                    <select id="car-select">
+                        <option value="">載入中...</option>
+                        </select>
+
+                    <label>預約日期</label>
+                    <input type="date" id="book-date">
+
+                    <label>服務項目</label>
+                    <select id="service-select">
+                        <option value="精緻洗車">精緻洗車</option>
+                        <option value="精緻打蠟">精緻打蠟</option>
+                        <option value="深層美容">深層美容</option>
+                        <option value="精緻鍍膜">精緻鍍膜</option>
+                    </select>
+
+                    <button type="button" class="btn-primary" onclick="submitBooking()">CONFIRM BOOKING</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="view-garage" class="hidden">
+            <div class="tech-card">
+                <h2>MY GARAGE</h2>
+                <div style="text-align: center; padding: 20px 0;">
+                    <div style="width: 100%; height: 180px; background-color: #111; border: 1px dashed var(--gold-color); display: flex; justify-content: center; align-items: center; color: var(--gold-color); margin-bottom: 15px;">
+                        [ 愛車主視覺照片載入區 ]
+                    </div>
+                    <h3 style="margin: 5px 0;">ABC-5295</h3>
+                    <p style="margin: 0; color: #aaa;">Porsche Macan</p>
+                </div>
+            </div>
+
+            <div class="tech-card">
+                <h2>SERVICE HISTORY</h2>
+                <ul style="list-style: none; padding: 0; color: #ccc; font-size: 14px;">
+                    <li style="padding: 10px 0; border-bottom: 1px solid #333;">2026-03-15 : 深層美容</li>
+                    <li style="padding: 10px 0; border-bottom: 1px solid #333;">2025-11-20 : 精緻洗車</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 系統設定區 (請替換成你自己的網址與 ID)
+        // ==========================================
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxuXaQR9-Yk6dcDlsovfbTlF71DICZtAtZfyrdY5n-jYmbTy48Od_m3VKeybHFFoXAOfw/exec'; 
+        const LIFF_ID = '2008811649-QZq68T5c'; 
+
+        // 網頁載入完成後執行的主程式
+        window.onload = function() {
+            // 1. 取得網址列的參數 (?view=booking 或 ?view=garage)
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetView = urlParams.get('view') || 'booking'; // 預設顯示預約畫面
+
+            // 2. 切換畫面顯示
+            if (targetView === 'garage') {
+                document.getElementById('view-garage').classList.remove('hidden');
+            } else {
+                document.getElementById('view-booking').classList.remove('hidden');
+            }
+
+            // 3. 模擬移除載入畫面 (實際情況會等 LIFF 載入完才移除)
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.display = 'none';
+            }, 800);
+
+            // --- 以下為 LIFF 初始化與後端串接的準備代碼 ---
+            /* liff.init({ liffId: LIFF_ID })
+                .then(() => {
+                    if (!liff.isLoggedIn()) {
+                        liff.login();
+                        return;
+                    }
+                    // 取得使用者資料
+                    liff.getProfile().then(profile => {
+                        const userId = profile.userId;
+                        // 去呼叫 GAS 後端撈資料
+                        // fetch(GAS_WEB_APP_URL, { ... })
+                    });
+                })
+                .catch(err => console.error(err));
+            */
+        };
+
+        // 模擬點擊預約按鈕
+        function submitBooking() {
+            alert('預約系統串接中！未來這會將資料送回 Google Sheet。');
+        }
+    </script>
+</body>
+</html>
