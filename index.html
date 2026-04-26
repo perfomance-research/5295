@@ -120,8 +120,15 @@
                 <h2>3. SERVICE</h2>
                 <select id="b-service">
                     <option value="精緻洗車">精緻洗車</option>
+                    <option value="精緻打蠟">精緻打蠟</option>
+                    <option value="鍍膜維護">鍍膜維護</option>
+                    <option value="除油膜+玻璃鍍膜">除油膜+玻璃鍍膜</option>
                     <option value="深層美容">深層美容</option>
+                    <option value="經典鍍膜">經典鍍膜</option>
                     <option value="精緻鍍膜">精緻鍍膜</option>
+                    <option value="臭氧除臭">臭氧除臭</option>
+                    <option value="引擎室清洗">引擎室清洗</option>
+                    <option value="客製化服務">客製化服務</option>
                 </select>
                 <button class="btn" onclick="goToStep2()">下一步：檢視報價</button>
             </div>
@@ -187,6 +194,26 @@
                 alert('LIFF 初始化失敗，請在 LINE 中開啟');
             });
         };
+
+        // ==========================================
+        // 車牌輸入自動格式化 (自動轉大寫 + 加入 Dash)
+        // ==========================================
+        const plateInput = document.getElementById('nc-plate');
+        if (plateInput) {
+            plateInput.addEventListener('input', function(e) {
+                // 1. 轉大寫，並過濾掉所有非英數字的字元 (包含客人自己打的空白或-)
+                let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                
+                // 2. 判斷邏輯 A：前面是連續英文，後面接數字 (例如 ABC1234 -> ABC-1234)
+                val = val.replace(/^([A-Z]{2,4})(\d{1,4})/, '$1-$2');
+                
+                // 3. 判斷邏輯 B：前面是連續數字，後面接英文 (例如 1234AB -> 1234-AB)
+                val = val.replace(/^(\d{2,4})([A-Z]{2,4})/, '$1-$2');
+                
+                // 4. 將格式化後的字串顯示回輸入框
+                e.target.value = val;
+            });
+        }
 
         function fetchUserData() {
             Promise.all([
