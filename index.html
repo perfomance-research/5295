@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>5295 STUDIO | 頂級汽車美容</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
 
     <style>
         :root { --bg: #050505; --gold: #d1c1a5; --red: #d92128; --text: #f0f0f0; --box: rgba(209, 193, 165, 0.05); }
@@ -45,11 +49,19 @@
         .photo-main { grid-column: span 2; height: 180px; }
 
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999; color: var(--gold); font-family: 'Orbitron'; }
+        
+        /* 圖片裁切器專用 UI */
+        #crop-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 1000; display: flex; flex-direction: column; }
+        #crop-container { flex: 1; width: 100%; overflow: hidden; background: #111; display: flex; justify-content: center; align-items: center; }
+        #crop-image { max-width: 100%; max-height: 100%; }
+        .crop-controls { padding: 15px; display: flex; justify-content: space-between; background: #000; border-top: 1px solid #333; }
+        .crop-controls button { width: 48%; margin-top: 0; }
     </style>
 </head>
 <body>
 
-    <div id="loader"><h1 class="logo-text">52<span>9</span>5</h1><p>SYSTEM LOADING...</p></div>
+    <div id="loader"><h1 class="logo-text">52<span>9</span>5</h1><p id="loader-text">SYSTEM LOADING...</p></div>
+    
     <header><h1 class="logo-text">52<span>9</span>5 STUDIO</h1></header>
 
     <div class="container">
@@ -58,9 +70,9 @@
             <div class="card">
                 <h2>CREATE GARAGE</h2>
                 <div class="photo-box photo-main" id="nc-photo" onclick="triggerUpload('new-main')">+ 點擊上傳愛車主視覺 (選填)</div>
-                <label>車牌號碼</label><input type="text" id="nc-plate" placeholder="ABC-5295" style="text-transform: uppercase;">
-                <label>廠牌</label><input type="text" id="nc-brand" placeholder="Porsche">
-                <label>型號</label><input type="text" id="nc-model" placeholder="Macan">
+                <label>車牌號碼 <span style="color:var(--red);">*</span></label><input type="text" id="nc-plate" placeholder="例如: ABC-5295" style="text-transform: uppercase;">
+                <label>廠牌 <span style="color:var(--red);">*</span></label><input type="text" id="nc-brand" placeholder="例如: Porsche">
+                <label>型號 <span style="color:var(--red);">*</span></label><input type="text" id="nc-model" placeholder="例如: Macan">
                 <label>車輛級距</label>
                 <select id="nc-class">
                     <option value="轎車">轎車</option><option value="休旅車、旅行車">休旅車、旅行車</option>
@@ -76,7 +88,6 @@
                 <div style="display: flex; gap: 10px;">
                     <select id="b-plate" onchange="renderCarPhotos()" style="flex: 1;"></select>
                 </div>
-                
                 <div style="margin-top: 15px;">
                     <div class="photo-box photo-main" id="p-main" onclick="triggerUpload('main')">+ 主視覺</div>
                     <button class="btn btn-outline" style="padding: 8px; font-size: 12px; margin-top: 10px;" onclick="document.getElementById('extra-photos').classList.toggle('hidden')">➕ 展開細節照片</button>
@@ -91,20 +102,12 @@
 
             <div class="card">
                 <h2>2. DATE & TIME</h2>
-                
-                <div class="cal-nav">
-                    <button onclick="changeMonth(-1)">❮</button>
-                    <span id="cal-month-title">2026 / 04</span>
-                    <button onclick="changeMonth(1)">❯</button>
-                </div>
-
-                <div class="calendar-grid">
-                    <div class="cal-header">日</div><div class="cal-header">一</div><div class="cal-header">二</div><div class="cal-header">三</div><div class="cal-header">四</div><div class="cal-header">五</div><div class="cal-header">六</div>
-                </div>
+                <div class="cal-nav"><button onclick="changeMonth(-1)">❮</button><span id="cal-month-title"></span><button onclick="changeMonth(1)">❯</button></div>
+                <div class="calendar-grid"><div class="cal-header">日</div><div class="cal-header">一</div><div class="cal-header">二</div><div class="cal-header">三</div><div class="cal-header">四</div><div class="cal-header">五</div><div class="cal-header">六</div></div>
                 <div id="cal-body" class="calendar-grid" style="margin-top: 5px;"></div>
 
                 <div id="time-selector" class="hidden">
-                    <p style="margin-top:20px; font-size:14px; color:var(--gold);">選擇具體時段 <span style="color:#888; font-size:12px;">(反灰代表該時段已被預約)</span></p>
+                    <p style="margin-top:20px; font-size:14px; color:var(--gold);">選擇具體時段 <span style="color:#888; font-size:12px;">(反灰代表已被預約)</span></p>
                     <div id="time-slots-body" class="time-slot-container"></div>
                 </div>
 
@@ -138,35 +141,51 @@
                 <button class="btn btn-outline" onclick="goBackStep1()" style="margin-top: 10px;">返回修改</button>
             </div>
         </div>
+    </div>
 
+    <div id="crop-modal" class="hidden">
+        <div id="crop-container"><img id="crop-image"></div>
+        <div class="crop-controls">
+            <button class="btn btn-outline" onclick="cancelCrop()">取消</button>
+            <button class="btn" onclick="confirmCrop()">確認裁剪</button>
+        </div>
     </div>
 
     <input type="file" id="file-uploader" accept="image/*" style="display:none;">
 
     <script>
+        // ==========================================
+        // 系統設定區 (請務必替換)
+        // ==========================================
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbxAZUHjTNBWFSCESnn_gtfH_5iMDGgmRmJFOGrQYNync547fhtvQem2AsL_ISFXGy5J9Q/exec'; 
         const LIFF_ID = '2008811649-QZq68T5c'; 
         const DEFAULT_IMG = 'https://via.placeholder.com/800x400/111111/d1c1a5?text=NO+IMAGE';
 
         let globalUserId = "";
+        let globalLineName = "";
         let userCars = [];
-        let currentUploadSlot = "";
         let newCarBase64 = ""; 
+        let currentUploadSlot = "";
+        let cropper; // 宣告 Cropper 實例
         
-        let busyTimesFromGoogle = []; // 存放所有客滿的毫秒區間
-        let selectedTimeSlots = [];   // 存放客人選好的 [日期 時間]
+        let busyTimesFromGoogle = []; 
+        let selectedTimeSlots = [];   
         let currentCalYear = new Date().getFullYear();
         let currentCalMonth = new Date().getMonth();
         let weatherData = {};
 
+        // --- 1. 系統初始化 ---
         window.onload = function() {
             liff.init({ liffId: LIFF_ID }).then(() => {
                 if (!liff.isLoggedIn()) { liff.login(); return; }
                 liff.getProfile().then(p => {
                     globalUserId = p.userId;
+                    globalLineName = p.displayName;
                     fetchUserData();
                 });
-            }).catch(err => alert('LIFF 錯誤'));
+            }).catch(err => {
+                alert('LIFF 初始化失敗，請在 LINE 中開啟');
+            });
         };
 
         function fetchUserData() {
@@ -176,7 +195,6 @@
                 fetch('https://api.open-meteo.com/v1/forecast?latitude=25.03&longitude=121.56&daily=weathercode&timezone=Asia%2FTaipei').then(r=>r.json()).catch(()=>({}))
             ]).then(([userRes, busyRes, weatherRes]) => {
                 document.getElementById('loader').style.display = 'none';
-                
                 if (busyRes.status === "success") busyTimesFromGoogle = busyRes.data;
                 if (weatherRes.daily) {
                     weatherRes.daily.time.forEach((dateStr, idx) => {
@@ -184,7 +202,6 @@
                         weatherData[dateStr] = (code <= 1) ? '☀️' : (code <= 3 ? '☁️' : '🌧️');
                     });
                 }
-
                 if (userRes.data.cars.length === 0) {
                     document.getElementById('view-newcar').classList.remove('hidden');
                 } else {
@@ -192,59 +209,126 @@
                     initBookingForm();
                     renderCalendar(currentCalYear, currentCalMonth);
                 }
+            }).catch(err => {
+                document.getElementById('loader').style.display = 'none';
+                alert('網路異常，讀取資料失敗');
             });
         }
 
-        // --- 照片壓縮與上傳模組 ---
+        // --- 2. 圖片編輯與裁切 (Cropper.js) ---
         function triggerUpload(slot) {
             currentUploadSlot = slot;
             document.getElementById('file-uploader').click();
         }
 
         document.getElementById('file-uploader').onchange = function(e) {
-            let file = e.target.files[0]; if (!file) return;
-            document.getElementById('loader').style.display = 'flex';
-            
-            let reader = new FileReader();
-            reader.onload = function(ev) {
-                let img = new Image();
-                img.onload = function() {
-                    let canvas = document.createElement('canvas'); let ctx = canvas.getContext('2d');
-                    let scale = img.width > 1000 ? 1000 / img.width : 1;
-                    canvas.width = img.width * scale; canvas.height = img.height * scale;
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    let base64 = canvas.toDataURL('image/jpeg', 0.7);
+            let file = e.target.files[0];
+            if (!file) return;
 
-                    if (currentUploadSlot === 'new-main') {
-                        newCarBase64 = base64;
-                        document.getElementById('nc-photo').style.backgroundImage = `url('${base64}')`;
-                        document.getElementById('nc-photo').innerHTML = '';
-                        document.getElementById('loader').style.display = 'none';
-                    } else {
-                        const plate = document.getElementById('b-plate').value;
-                        fetch(GAS_URL, {
-                            method: 'POST', body: JSON.stringify({ action: "uploadPhoto", plate: plate, slot: currentUploadSlot, imageBase64: base64 })
-                        }).then(res => res.json()).then(res => {
-                            document.getElementById('p-' + currentUploadSlot).style.backgroundImage = `url('${res.data}')`;
-                            document.getElementById('p-' + currentUploadSlot).innerHTML = '';
-                            let car = userCars.find(c => c.plate === plate);
-                            if(currentUploadSlot==='main') car.photoMain = res.data; else car['photo'+currentUploadSlot] = res.data;
-                            document.getElementById('loader').style.display = 'none';
-                        });
-                    }
-                }
-                img.src = ev.target.result;
-            }
+            // 讀取檔案並顯示在裁切器中
+            let reader = new FileReader();
+            reader.onload = function(event) {
+                let image = document.getElementById('crop-image');
+                image.src = event.target.result;
+                document.getElementById('crop-modal').classList.remove('hidden');
+
+                if (cropper) cropper.destroy(); // 銷毀舊的實例
+                cropper = new Cropper(image, {
+                    aspectRatio: 16 / 9, // 固定 16:9 比例，適合車輛展示
+                    viewMode: 1,
+                    autoCropArea: 0.8,
+                    background: false
+                });
+            };
             reader.readAsDataURL(file);
+            document.getElementById('file-uploader').value = ''; // 清除 input 確保可重複選擇同檔
         };
 
-        // --- 日曆切換與繪製 ---
+        function cancelCrop() {
+            document.getElementById('crop-modal').classList.add('hidden');
+            if (cropper) cropper.destroy();
+        }
+
+        function confirmCrop() {
+            if (!cropper) return;
+            document.getElementById('loader-text').innerText = 'UPLOADING PHOTO...';
+            document.getElementById('loader').style.display = 'flex';
+
+            // 取得裁切後的圖片並自動壓縮
+            let canvas = cropper.getCroppedCanvas({
+                maxWidth: 1000,
+                maxHeight: 1000,
+                imageSmoothingQuality: 'high',
+            });
+            let base64 = canvas.toDataURL('image/jpeg', 0.8);
+            cancelCrop();
+
+            if (currentUploadSlot === 'new-main') {
+                newCarBase64 = base64;
+                document.getElementById('nc-photo').style.backgroundImage = `url('${base64}')`;
+                document.getElementById('nc-photo').innerHTML = '';
+                document.getElementById('loader').style.display = 'none';
+            } else {
+                const plate = document.getElementById('b-plate').value;
+                fetch(GAS_URL, {
+                    method: 'POST', body: JSON.stringify({ action: "uploadPhoto", plate: plate, slot: currentUploadSlot, imageBase64: base64 })
+                }).then(res => res.json()).then(res => {
+                    document.getElementById('p-' + currentUploadSlot).style.backgroundImage = `url('${res.data}')`;
+                    document.getElementById('p-' + currentUploadSlot).innerHTML = '';
+                    let car = userCars.find(c => c.plate === plate);
+                    if(currentUploadSlot==='main') car.photoMain = res.data; else car['photo'+currentUploadSlot] = res.data;
+                    document.getElementById('loader').style.display = 'none';
+                    alert('相片更新成功！');
+                }).catch(err => {
+                    document.getElementById('loader').style.display = 'none';
+                    alert('上傳失敗，請檢查網路狀態');
+                });
+            }
+        }
+
+        // --- 3. 建立新車表單驗證 (解決按鍵沒反應問題) ---
+        function submitNewCar() {
+            const plate = document.getElementById('nc-plate').value.trim().toUpperCase();
+            const brand = document.getElementById('nc-brand').value.trim();
+            const model = document.getElementById('nc-model').value.trim();
+            
+            // 加入完整防呆警告
+            if(!plate || !brand || !model) {
+                alert('錯誤：請確實填寫車牌、廠牌與型號！');
+                return;
+            }
+            if(!globalUserId) {
+                alert('錯誤：無法取得您的 LINE 授權，請重新整理網頁。');
+                return;
+            }
+
+            document.getElementById('loader-text').innerText = 'CREATING GARAGE...';
+            document.getElementById('loader').style.display = 'flex';
+            
+            const data = { lineName: globalLineName, plate: plate, brand: brand, model: model, carClass: document.getElementById('nc-class').value, imageBase64: newCarBase64 };
+            
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "addCar", userId: globalUserId, carData: data }) })
+            .then(res => res.json()).then(res => {
+                if(res.status === 'success') {
+                    alert('專屬車庫建立成功！');
+                    location.reload();
+                } else {
+                    document.getElementById('loader').style.display = 'none';
+                    alert('建檔發生錯誤：' + res.message);
+                }
+            }).catch(err => {
+                document.getElementById('loader').style.display = 'none';
+                alert('伺服器連線異常，請稍後再試。');
+            });
+        }
+
+        // --- 4. 日曆與預約邏輯 (不變) ---
         function changeMonth(offset) {
             currentCalMonth += offset;
             if (currentCalMonth > 11) { currentCalMonth = 0; currentCalYear++; }
             if (currentCalMonth < 0) { currentCalMonth = 11; currentCalYear--; }
             renderCalendar(currentCalYear, currentCalMonth);
-            document.getElementById('time-selector').classList.add('hidden'); // 換月時隱藏時間表
+            document.getElementById('time-selector').classList.add('hidden'); 
         }
 
         function renderCalendar(year, month) {
@@ -253,75 +337,50 @@
             const now = new Date(); now.setHours(0,0,0,0);
             const firstDay = new Date(year, month, 1).getDay(); 
             const daysInMonth = new Date(year, month + 1, 0).getDate(); 
-            
             let html = '';
             for (let i = 0; i < firstDay; i++) { html += `<div></div>`; }
-            
             for (let d = 1; d <= daysInMonth; d++) {
                 let cellDate = new Date(year, month, d);
                 let dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 let icon = weatherData[dateStr] ? `<div class="weather-icon">${weatherData[dateStr]}</div>` : '';
-                
                 let isPast = cellDate < now;
                 let cssClass = isPast ? 'past' : (icon ? 'has-weather' : '');
-                
-                if(isPast){
-                    html += `<div class="cal-day ${cssClass}">${d}${icon}</div>`;
-                } else {
-                    html += `<div class="cal-day ${cssClass}" id="cal-day-${dateStr}" onclick="selectDate('${dateStr}')">${d}${icon}</div>`;
-                }
+                if(isPast) html += `<div class="cal-day ${cssClass}">${d}${icon}</div>`;
+                else html += `<div class="cal-day ${cssClass}" id="cal-day-${dateStr}" onclick="selectDate('${dateStr}')">${d}${icon}</div>`;
             }
             calBody.innerHTML = html;
         }
 
-        // --- 點擊日期展開時間表 ---
         function selectDate(dateStr) {
-            // 清除之前的反亮
             document.querySelectorAll('.cal-day').forEach(el => el.classList.remove('active'));
             document.getElementById('cal-day-' + dateStr).classList.add('active');
-
             const timeSlots = ["09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
             let html = '';
-
             timeSlots.forEach(time => {
-                // 產生這個時段的毫秒時間戳記 (用來比對 Google Calendar)
                 let slotStart = new Date(`${dateStr}T${time}:00`).getTime();
-                
-                // 檢查是否與 Google 行程重疊
-                let isBusy = busyTimesFromGoogle.some(event => {
-                    return slotStart >= event.start && slotStart < event.end;
-                });
-
+                let isBusy = busyTimesFromGoogle.some(event => slotStart >= event.start && slotStart < event.end);
                 let displayStr = `${dateStr} ${time}`;
                 let isSelected = selectedTimeSlots.includes(displayStr);
-                
-                if(isBusy) {
-                    html += `<div class="time-slot busy">已客滿<br>${time}</div>`;
-                } else {
-                    let selClass = isSelected ? 'selected' : '';
-                    html += `<div class="time-slot ${selClass}" onclick="toggleTimeSlot('${displayStr}', this)">${time}</div>`;
-                }
+                if(isBusy) html += `<div class="time-slot busy">客滿</div>`;
+                else html += `<div class="time-slot ${isSelected?'selected':''}" onclick="toggleTimeSlot('${displayStr}', this)">${time}</div>`;
             });
-
             document.getElementById('time-slots-body').innerHTML = html;
             document.getElementById('time-selector').classList.remove('hidden');
         }
 
-        // --- 點擊時段 ---
         function toggleTimeSlot(displayStr, el) {
             if (selectedTimeSlots.includes(displayStr)) {
                 selectedTimeSlots = selectedTimeSlots.filter(t => t !== displayStr);
                 el.classList.remove('selected');
             } else {
-                if (selectedTimeSlots.length >= 3) return alert("最多只能選擇 3 個時段喔！");
+                if (selectedTimeSlots.length >= 3) return alert("最多選擇 3 個時段！");
                 selectedTimeSlots.push(displayStr);
                 el.classList.add('selected');
             }
             selectedTimeSlots.sort();
-            document.getElementById('selected-dates-text').innerText = selectedTimeSlots.length > 0 ? selectedTimeSlots.join('\n') : '尚未選擇';
+            document.getElementById('selected-dates-text').innerHTML = selectedTimeSlots.length > 0 ? selectedTimeSlots.join('<br>') : '尚未選擇';
         }
 
-        // --- 其他功能 (維持原邏輯) ---
         function initBookingForm() {
             const select = document.getElementById('b-plate');
             select.innerHTML = '';
@@ -344,20 +403,16 @@
             setPhoto('p-3', car.photo3, '+ 細節 3'); setPhoto('p-4', car.photo4, '+ 細節 4');
         }
 
-        function submitNewCar() {
-            const data = { lineName: globalLineName, plate: document.getElementById('nc-plate').value.toUpperCase(), brand: document.getElementById('nc-brand').value, model: document.getElementById('nc-model').value, carClass: document.getElementById('nc-class').value, imageBase64: newCarBase64 };
-            document.getElementById('loader').style.display = 'flex';
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "addCar", userId: globalUserId, carData: data }) }).then(() => location.reload());
-        }
-
         function goToStep2() {
             if(selectedTimeSlots.length === 0) return alert("請至少選擇 1 個具體時段！");
             document.getElementById('c-plate').innerText = document.getElementById('b-plate').value;
             document.getElementById('c-service').innerText = document.getElementById('b-service').value;
-            document.getElementById('c-dates').innerText = selectedTimeSlots.join(', ');
-            
+            document.getElementById('c-dates').innerHTML = selectedTimeSlots.join('<br>');
             document.getElementById('view-step1').classList.add('hidden');
             document.getElementById('view-step2').classList.remove('hidden');
+            document.getElementById('c-price').innerText = "計算中...";
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "getQuote", plate: document.getElementById('b-plate').value, service: document.getElementById('b-service').value }) })
+            .then(res => res.json()).then(res => { document.getElementById('c-price').innerText = res.data; });
         }
 
         function goBackStep1() {
@@ -366,6 +421,7 @@
         }
 
         function submitFinalBooking() {
+            document.getElementById('loader-text').innerText = 'SUBMITTING BOOKING...';
             document.getElementById('loader').style.display = 'flex';
             const bData = { plate: document.getElementById('b-plate').value, service: document.getElementById('b-service').value, selectedDates: selectedTimeSlots, price: document.getElementById('c-price').innerText };
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "submitBooking", userId: globalUserId, bookingData: bData }) })
