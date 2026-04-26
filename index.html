@@ -9,29 +9,32 @@
 
     <style>
         :root { --bg: #050505; --gold: #d1c1a5; --red: #d92128; --text: #f0f0f0; --box: rgba(209, 193, 165, 0.05); }
-        body { margin: 0; background-color: var(--bg); color: var(--text); font-family: 'Noto Sans TC', sans-serif; overflow-x: hidden;}
+        body { margin: 0; background-color: var(--bg); color: var(--text); font-family: 'Noto Sans TC', sans-serif; overflow-x: hidden; padding-bottom: 80px;}
         header { text-align: center; padding: 15px 0; border-bottom: 1px solid rgba(209, 193, 165, 0.3); background: #0a0a0a; }
         .logo-text { font-family: 'Orbitron', sans-serif; font-size: 28px; font-weight: 700; letter-spacing: 4px; color: var(--gold); margin: 0; }
         .logo-text span { color: var(--red); }
-        .container { padding: 15px; max-width: 600px; margin: 0 auto; padding-bottom: 80px;}
+        .container { padding: 15px; max-width: 600px; margin: 0 auto; }
         .card { background-color: var(--box); border: 1px solid var(--gold); border-radius: 8px; padding: 20px; margin-bottom: 20px; position: relative; }
         h2 { font-family: 'Orbitron', sans-serif; color: var(--gold); border-bottom: 1px dashed var(--gold); padding-bottom: 10px; margin-top: 0; font-size: 18px;}
         label { display: block; margin-top: 15px; font-size: 13px; color: #aaa; }
         select, input { width: 100%; padding: 12px; margin-top: 5px; background-color: rgba(0,0,0,0.5); border: 1px solid var(--gold); color: var(--gold); border-radius: 4px; box-sizing: border-box; font-size: 14px;}
-        .btn { display: block; width: 100%; padding: 15px; margin-top: 20px; background-color: var(--gold); color: #000; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; font-family: 'Orbitron', sans-serif; cursor: pointer; }
-        .hidden { display: none; }
+        .btn { display: block; width: 100%; padding: 15px; margin-top: 20px; background-color: var(--gold); color: #000; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; font-family: 'Orbitron', sans-serif; cursor: pointer; transition: 0.3s; }
+        .btn-outline { background: transparent; border: 1px solid var(--gold); color: var(--gold); }
+        .hidden { display: none !important; }
         
-        /* 天氣日曆樣式 */
+        /* 天氣日曆樣式 (加入紅框與反灰邏輯) */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 15px; text-align: center; }
         .cal-header { font-size: 12px; color: #aaa; padding-bottom: 5px; border-bottom: 1px solid #333;}
-        .cal-day { background: #111; border: 1px solid #333; border-radius: 4px; padding: 8px 2px; font-size: 12px; position: relative; height: 50px; display: flex; flex-direction: column; justify-content: center; align-items: center;}
-        .cal-day.has-weather { border-color: var(--gold); }
-        .weather-icon { font-size: 18px; margin-top: 2px;}
+        .cal-day { background: #111; border: 1px solid #333; border-radius: 4px; padding: 8px 2px; font-size: 12px; height: 50px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s;}
+        .cal-day.has-weather { border-color: rgba(209, 193, 165, 0.4); }
+        .cal-day.selected { border: 2px solid var(--red) !important; background: rgba(217, 33, 40, 0.15); box-shadow: 0 0 10px rgba(217, 33, 40, 0.3);}
+        .cal-day.busy { opacity: 0.3; cursor: not-allowed; border-color: #222 !important; background: #000; }
+        .weather-icon { font-size: 16px; margin-top: 2px;}
         
         /* 照片區塊 */
         .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .photo-box { height: 100px; background: #111; border: 1px dashed var(--gold); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--gold); cursor: pointer; background-size: cover; background-position: center;}
-        .photo-main { grid-column: span 2; height: 160px; }
+        .photo-box { height: 100px; background: #111; border: 1px dashed var(--gold); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--gold); cursor: pointer; background-size: cover; background-position: center; border-radius: 4px;}
+        .photo-main { grid-column: span 2; height: 180px; }
 
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999; color: var(--gold); font-family: 'Orbitron'; }
     </style>
@@ -46,52 +49,75 @@
         <div id="view-newcar" class="hidden">
             <div class="card">
                 <h2>CREATE GARAGE</h2>
-                <label>車牌號碼</label><input type="text" id="nc-plate" placeholder="ABC-5295" style="text-transform: uppercase;">
-                <label>廠牌</label><input type="text" id="nc-brand" placeholder="Porsche">
-                <label>型號</label><input type="text" id="nc-model" placeholder="Macan">
+                <p style="font-size: 12px; color: #aaa;">請建立愛車檔案。您也可以選擇上傳一張愛車照。</p>
+                
+                <div class="photo-box photo-main" id="nc-photo" onclick="triggerUpload('new-main')">
+                    + 點擊上傳愛車主視覺 (選填)
+                </div>
+
+                <label>車牌號碼 (必填)</label><input type="text" id="nc-plate" placeholder="ABC-5295" style="text-transform: uppercase;">
+                <label>廠牌 (必填)</label><input type="text" id="nc-brand" placeholder="Porsche">
+                <label>型號 (必填)</label><input type="text" id="nc-model" placeholder="Macan">
                 <label>車輛級距</label>
                 <select id="nc-class">
                     <option value="轎車">轎車</option><option value="休旅車、旅行車">休旅車、旅行車</option>
                     <option value="大型休旅車">大型休旅車</option><option value="商務車">商務車</option>
                 </select>
                 <button class="btn" onclick="submitNewCar()">建立專屬車庫</button>
+                <button class="btn btn-outline" onclick="cancelNewCar()" id="btn-cancel-newcar" style="display:none; margin-top:10px;">取消返回</button>
             </div>
         </div>
 
         <div id="view-step1" class="hidden">
             <div class="card">
                 <h2>1. MY VEHICLE</h2>
-                <label>選擇愛車</label>
-                <select id="b-plate" onchange="renderCarPhotos()"></select>
+                <div style="display: flex; gap: 10px;">
+                    <select id="b-plate" onchange="renderCarPhotos()" style="flex: 1;"></select>
+                    <button class="btn btn-outline" style="width: auto; margin-top: 5px; padding: 0 15px; font-size: 12px;" onclick="showNewCarView()">+ 新增愛車</button>
+                </div>
                 
-                <label style="margin-top: 15px;">愛車現況照 (點擊上傳 / 1 主視覺 + 4 細節)</label>
-                <div class="photo-grid">
+                <div style="margin-top: 15px;">
                     <div class="photo-box photo-main" id="p-main" onclick="triggerUpload('main')">+ 主視覺</div>
-                    <div class="photo-box" id="p-1" onclick="triggerUpload('1')">+ 細節照 1</div>
-                    <div class="photo-box" id="p-2" onclick="triggerUpload('2')">+ 細節照 2</div>
-                    <div class="photo-box" id="p-3" onclick="triggerUpload('3')">+ 細節照 3</div>
-                    <div class="photo-box" id="p-4" onclick="triggerUpload('4')">+ 細節照 4</div>
+                    
+                    <button class="btn btn-outline" style="padding: 8px; font-size: 12px; margin-top: 10px;" onclick="document.getElementById('extra-photos').classList.toggle('hidden')">
+                        ➕ 展開細節照片 (選填)
+                    </button>
+                    
+                    <div id="extra-photos" class="photo-grid hidden">
+                        <div class="photo-box" id="p-1" onclick="triggerUpload('1')">+ 細節照 1</div>
+                        <div class="photo-box" id="p-2" onclick="triggerUpload('2')">+ 細節照 2</div>
+                        <div class="photo-box" id="p-3" onclick="triggerUpload('3')">+ 細節照 3</div>
+                        <div class="photo-box" id="p-4" onclick="triggerUpload('4')">+ 細節照 4</div>
+                    </div>
                 </div>
             </div>
 
             <div class="card">
                 <h2>2. DATE & WEATHER</h2>
-                <p style="font-size:12px; color:#aaa; margin:0;">參考未來一週天氣，選擇 3 個志願時段讓店家為您安排。</p>
+                <p style="font-size:12px; color:#aaa; margin:0;">點擊日曆選擇 <span style="color:var(--red);">最多 3 天</span> 讓店家為您安排。(反灰代表該日已客滿)</p>
                 
                 <div class="calendar-grid">
                     <div class="cal-header">日</div><div class="cal-header">一</div><div class="cal-header">二</div><div class="cal-header">三</div><div class="cal-header">四</div><div class="cal-header">五</div><div class="cal-header">六</div>
-                    </div>
+                </div>
                 <div id="cal-body" class="calendar-grid" style="margin-top: 5px;"></div>
 
-                <label>志願一</label><input type="datetime-local" id="b-time1">
-                <label>志願二</label><input type="datetime-local" id="b-time2">
-                <label>志願三</label><input type="datetime-local" id="b-time3">
+                <div style="margin-top: 15px; padding: 10px; background: #111; border-radius: 4px; font-size: 13px;">
+                    已選日期：<span id="selected-dates-text" style="color: var(--gold);">尚未選擇</span>
+                </div>
+                
+                <label>偏好時段</label>
+                <select id="b-time-pref">
+                    <option value="皆可">全天皆可</option>
+                    <option value="早上 (09:00-12:00)">早上 (09:00-12:00)</option>
+                    <option value="下午 (13:00-18:00)">下午 (13:00-18:00)</option>
+                </select>
             </div>
 
             <div class="card">
                 <h2>3. SERVICE</h2>
                 <select id="b-service">
                     <option value="精緻洗車">精緻洗車</option>
+                    <option value="精緻打蠟">精緻打蠟</option>
                     <option value="深層美容">深層美容</option>
                     <option value="精緻鍍膜">精緻鍍膜</option>
                 </select>
@@ -105,12 +131,13 @@
                 <div style="background: #111; padding: 15px; border-radius: 4px; margin-bottom: 15px;">
                     <p style="margin: 5px 0; color:#aaa; font-size:14px;">車牌：<span id="c-plate" style="color:#fff;"></span></p>
                     <p style="margin: 5px 0; color:#aaa; font-size:14px;">項目：<span id="c-service" style="color:#fff;"></span></p>
+                    <p style="margin: 5px 0; color:#aaa; font-size:14px;">日期：<span id="c-dates" style="color:var(--gold);"></span></p>
                     <hr style="border-color: #333; margin: 15px 0;">
                     <h3 style="margin: 0; color: var(--gold); font-size: 22px; text-align: center;" id="c-price">計算中...</h3>
                 </div>
                 <p style="font-size: 13px; color: #888; text-align: center;">預約送出後，店家將為您安排最適合的時段並發送通知，請留意 LINE 訊息。</p>
                 <button class="btn" onclick="submitFinalBooking()">確認送出預約</button>
-                <button class="btn" onclick="goBackStep1()" style="background: transparent; border: 1px solid var(--gold); color: var(--gold); margin-top: 10px;">返回修改</button>
+                <button class="btn btn-outline" onclick="goBackStep1()" style="margin-top: 10px;">返回修改</button>
             </div>
         </div>
 
@@ -122,49 +149,67 @@
         // ==========================================
         // 系統設定區
         // ==========================================
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzK_rhTwsRF-dSKC4bYXdUv_Otez5sKjZiyUn6zrT8gJjNKmZGQqt3ys9tre2mzKzAC3A/exec'; 
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyLbpRCZzATIRYXuK6aWvPBM-kB3IVqKLeMmf6aqe3zERs10ZGyaoiGkRZGeq_7gwR5Vg/exec'; 
         const LIFF_ID = '2008811649-QZq68T5c'; 
+        
+        // 這是你說的預設圖片 URL (這裡用一個質感的黑灰漸層代替，避免 Drive 權限問題破圖)
+        const DEFAULT_IMG = 'https://via.placeholder.com/800x400/111111/d1c1a5?text=NO+IMAGE+UPLOADED';
 
         let globalUserId = "";
         let globalLineName = "";
         let userCars = [];
         let currentUploadSlot = "";
+        let newCarBase64 = ""; // 新車建檔時暫存照片
+        let selectedDates = []; // 儲存點擊選取的日期
+        let busyDatesFromGoogle = []; // 儲存客滿日期
 
-        // ==========================================
-        // 1. 系統初始化與身分確認
-        // ==========================================
         window.onload = function() {
             liff.init({ liffId: LIFF_ID }).then(() => {
                 if (!liff.isLoggedIn()) { liff.login(); return; }
                 liff.getProfile().then(p => {
                     globalUserId = p.userId; globalLineName = p.displayName;
                     fetchUserData();
-                    renderWeatherCalendar(); // 同時背景抓取天氣
                 });
             }).catch(err => alert('LIFF 錯誤'));
         };
 
         function fetchUserData() {
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "checkUser", userId: globalUserId }) })
-            .then(res => res.json()).then(res => {
+            // 同時抓使用者資料 & 日曆客滿資料
+            Promise.all([
+                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "checkUser", userId: globalUserId }) }).then(r=>r.json()),
+                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "getBusyDates" }) }).then(r=>r.json())
+            ]).then(([userRes, busyRes]) => {
                 document.getElementById('loader').style.display = 'none';
-                if (res.data.cars.length === 0) {
-                    document.getElementById('view-newcar').classList.remove('hidden');
+                
+                if (busyRes.status === "success") { busyDatesFromGoogle = busyRes.data; }
+
+                if (userRes.data.cars.length === 0) {
+                    showNewCarView();
                 } else {
-                    userCars = res.data.cars;
+                    userCars = userRes.data.cars;
                     initBookingForm();
+                    renderWeatherCalendar(); // 抓完忙碌資料後畫日曆
                 }
             });
         }
 
-        // ==========================================
-        // 2. 表單與相簿渲染
-        // ==========================================
+        function showNewCarView() {
+            document.getElementById('view-step1').classList.add('hidden');
+            document.getElementById('view-step2').classList.add('hidden');
+            document.getElementById('view-newcar').classList.remove('hidden');
+            if(userCars.length > 0) document.getElementById('btn-cancel-newcar').style.display = 'block';
+        }
+        function cancelNewCar() {
+            document.getElementById('view-newcar').classList.add('hidden');
+            document.getElementById('view-step1').classList.remove('hidden');
+        }
+
         function initBookingForm() {
             const select = document.getElementById('b-plate');
             select.innerHTML = '';
             userCars.forEach(car => { select.innerHTML += `<option value="${car.plate}">${car.plate} (${car.brand})</option>`; });
             renderCarPhotos();
+            document.getElementById('view-newcar').classList.add('hidden');
             document.getElementById('view-step1').classList.remove('hidden');
         }
 
@@ -174,22 +219,19 @@
             const setPhoto = (id, url, text) => {
                 const el = document.getElementById(id);
                 if (url) {
-                    el.style.backgroundImage = `url('${url}')`;
-                    el.innerHTML = '';
+                    el.style.backgroundImage = `url('${url}')`; el.innerHTML = '';
                 } else {
-                    el.style.backgroundImage = 'none';
-                    el.innerHTML = text;
+                    el.style.backgroundImage = id === 'p-main' ? `url('${DEFAULT_IMG}')` : 'none';
+                    el.innerHTML = id === 'p-main' ? '' : text;
                 }
             };
             setPhoto('p-main', car.photoMain, '+ 主視覺');
-            setPhoto('p-1', car.photo1, '+ 細節照 1');
-            setPhoto('p-2', car.photo2, '+ 細節照 2');
-            setPhoto('p-3', car.photo3, '+ 細節照 3');
-            setPhoto('p-4', car.photo4, '+ 細節照 4');
+            setPhoto('p-1', car.photo1, '+ 細節 1'); setPhoto('p-2', car.photo2, '+ 細節 2');
+            setPhoto('p-3', car.photo3, '+ 細節 3'); setPhoto('p-4', car.photo4, '+ 細節 4');
         }
 
         // ==========================================
-        // 3. 壓縮與上傳照片 (黑科技)
+        // 上傳與壓縮引擎 (包含新車建檔)
         // ==========================================
         function triggerUpload(slot) {
             currentUploadSlot = slot;
@@ -205,33 +247,31 @@
             reader.onload = function(ev) {
                 let img = new Image();
                 img.onload = function() {
-                    // Canvas 壓縮至最大寬度 1000px，畫質 0.7
-                    let canvas = document.createElement('canvas');
-                    let ctx = canvas.getContext('2d');
-                    let maxW = 1000;
-                    let scale = img.width > maxW ? maxW / img.width : 1;
-                    canvas.width = img.width * scale;
-                    canvas.height = img.height * scale;
+                    let canvas = document.createElement('canvas'); let ctx = canvas.getContext('2d');
+                    let maxW = 1000; let scale = img.width > maxW ? maxW / img.width : 1;
+                    canvas.width = img.width * scale; canvas.height = img.height * scale;
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     let base64 = canvas.toDataURL('image/jpeg', 0.7);
 
-                    // 傳送給 GAS
-                    const plate = document.getElementById('b-plate').value;
-                    fetch(GAS_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ action: "uploadPhoto", plate: plate, slot: currentUploadSlot, imageBase64: base64 })
-                    }).then(res => res.json()).then(res => {
-                        // 更新畫面的背景圖
-                        document.getElementById('p-' + currentUploadSlot).style.backgroundImage = `url('${res.data}')`;
-                        document.getElementById('p-' + currentUploadSlot).innerHTML = '';
-                        // 更新本地記憶體
-                        let car = userCars.find(c => c.plate === plate);
-                        if(currentUploadSlot==='main') car.photoMain = res.data;
-                        else car['photo'+currentUploadSlot] = res.data;
-                        
+                    if (currentUploadSlot === 'new-main') {
+                        // 如果是建檔時的預覽
+                        newCarBase64 = base64;
+                        document.getElementById('nc-photo').style.backgroundImage = `url('${base64}')`;
+                        document.getElementById('nc-photo').innerHTML = '';
                         document.getElementById('loader').style.display = 'none';
-                        alert('照片上傳成功！');
-                    });
+                    } else {
+                        // 如果是既有車庫的更新
+                        const plate = document.getElementById('b-plate').value;
+                        fetch(GAS_URL, {
+                            method: 'POST', body: JSON.stringify({ action: "uploadPhoto", plate: plate, slot: currentUploadSlot, imageBase64: base64 })
+                        }).then(res => res.json()).then(res => {
+                            document.getElementById('p-' + currentUploadSlot).style.backgroundImage = `url('${res.data}')`;
+                            document.getElementById('p-' + currentUploadSlot).innerHTML = '';
+                            let car = userCars.find(c => c.plate === plate);
+                            if(currentUploadSlot==='main') car.photoMain = res.data; else car['photo'+currentUploadSlot] = res.data;
+                            document.getElementById('loader').style.display = 'none';
+                        });
+                    }
                 }
                 img.src = ev.target.result;
             }
@@ -239,68 +279,89 @@
         };
 
         // ==========================================
-        // 4. 天氣 API 與日曆繪製
+        // 日曆繪製與點擊邏輯
         // ==========================================
         async function renderWeatherCalendar() {
-            // 抓取台北氣象資料 (未來 7 天)
             const weatherData = {};
             try {
                 const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=25.03&longitude=121.56&daily=weathercode&timezone=Asia%2FTaipei');
                 const data = await res.json();
-                data.daily.time.forEach((dateStr, index) => {
-                    let code = data.daily.weathercode[index];
-                    let icon = '☁️'; // 預設陰天
-                    if (code === 0 || code === 1) icon = '☀️'; // 晴天
-                    else if (code >= 51 && code <= 67) icon = '🌧️'; // 雨天
-                    weatherData[dateStr] = icon;
+                data.daily.time.forEach((dateStr, idx) => {
+                    let code = data.daily.weathercode[idx];
+                    weatherData[dateStr] = (code <= 1) ? '☀️' : (code <= 3 ? '☁️' : '🌧️');
                 });
-            } catch (e) { console.log('氣象載入失敗'); }
+            } catch (e) {}
 
-            // 繪製 7x5 網格 (本月)
             const calBody = document.getElementById('cal-body');
             const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth();
-            const firstDay = new Date(year, month, 1).getDay(); // 本月 1 號是星期幾
-            const daysInMonth = new Date(year, month + 1, 0).getDate(); // 本月有幾天
+            const year = now.getFullYear(); const month = now.getMonth();
+            const firstDay = new Date(year, month, 1).getDay(); 
+            const daysInMonth = new Date(year, month + 1, 0).getDate(); 
             
             let html = '';
-            // 填充前置空白
-            for (let i = 0; i < firstDay; i++) { html += `<div class="cal-day" style="border:none;"></div>`; }
-            // 填充日期
+            for (let i = 0; i < firstDay; i++) { html += `<div></div>`; }
+            
             for (let d = 1; d <= daysInMonth; d++) {
                 let dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 let icon = weatherData[dateStr] ? `<div class="weather-icon">${weatherData[dateStr]}</div>` : '';
-                let hasW = icon ? 'has-weather' : '';
-                html += `<div class="cal-day ${hasW}">${d}${icon}</div>`;
-            }
-            // 填充後續空白到滿 35 格
-            const totalCells = firstDay + daysInMonth;
-            const remainder = 35 - totalCells;
-            if(remainder > 0) {
-                for (let i = 0; i < remainder; i++) { html += `<div class="cal-day" style="border:none;"></div>`; }
+                
+                // 檢查是否客滿或過期
+                let isBusy = busyDatesFromGoogle.includes(dateStr) || (new Date(dateStr) < new Date(now.toDateString()));
+                let busyClass = isBusy ? 'busy' : (icon ? 'has-weather' : '');
+                
+                html += `<div class="cal-day ${busyClass}" onclick="toggleDate('${dateStr}', this, ${isBusy})">${d}${icon}</div>`;
             }
             calBody.innerHTML = html;
         }
 
+        // 點擊日曆格子的邏輯
+        function toggleDate(dateStr, el, isBusy) {
+            if (isBusy) return alert("這天已客滿或不可預約，請選擇其他日期喔！");
+            
+            if (selectedDates.includes(dateStr)) {
+                selectedDates = selectedDates.filter(d => d !== dateStr);
+                el.classList.remove('selected');
+            } else {
+                if (selectedDates.length >= 3) return alert("最多只能選擇 3 天讓店家為您安排喔！");
+                selectedDates.push(dateStr);
+                el.classList.add('selected');
+            }
+            // 排序並顯示在畫面上
+            selectedDates.sort();
+            document.getElementById('selected-dates-text').innerText = selectedDates.length > 0 ? selectedDates.join(', ') : '尚未選擇';
+        }
+
         // ==========================================
-        // 5. 兩階段預約邏輯
+        // 兩階段預約與建檔送出
         // ==========================================
+        function submitNewCar() {
+            const plate = document.getElementById('nc-plate').value.toUpperCase();
+            const brand = document.getElementById('nc-brand').value;
+            if(!plate || !brand) return alert('車牌與廠牌為必填！');
+            
+            document.getElementById('loader').style.display = 'flex';
+            const data = {
+                lineName: globalLineName, plate: plate, brand: brand,
+                model: document.getElementById('nc-model').value, carClass: document.getElementById('nc-class').value,
+                imageBase64: newCarBase64 // 如果有上傳就帶過去
+            };
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "addCar", userId: globalUserId, carData: data }) })
+            .then(() => { location.reload(); });
+        }
+
         function goToStep2() {
+            if(selectedDates.length === 0) return alert("請在日曆上點擊選擇至少 1 天！");
+            
             const plate = document.getElementById('b-plate').value;
             const service = document.getElementById('b-service').value;
-            const t1 = document.getElementById('b-time1').value;
-            if(!t1) return alert("請至少選擇「志願一」時段！");
 
             document.getElementById('c-plate').innerText = plate;
             document.getElementById('c-service').innerText = service;
+            document.getElementById('c-dates').innerText = selectedDates.join(', ') + ' (' + document.getElementById('b-time-pref').value + ')';
             
-            // 詢問 GAS 價格
             document.getElementById('c-price').innerText = "計算中...";
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "getQuote", plate: plate, service: service }) })
-            .then(res => res.json()).then(res => {
-                document.getElementById('c-price').innerText = res.data;
-            });
+            .then(res => res.json()).then(res => { document.getElementById('c-price').innerText = res.data; });
 
             document.getElementById('view-step1').classList.add('hidden');
             document.getElementById('view-step2').classList.remove('hidden');
@@ -316,32 +377,17 @@
             const bData = {
                 plate: document.getElementById('b-plate').value,
                 service: document.getElementById('b-service').value,
-                time1: document.getElementById('b-time1').value,
-                time2: document.getElementById('b-time2').value,
-                time3: document.getElementById('b-time3').value,
+                selectedDates: selectedDates,
+                timePref: document.getElementById('b-time-pref').value,
                 price: document.getElementById('c-price').innerText
             };
 
             fetch(GAS_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: "submitBooking", userId: globalUserId, bookingData: bData })
+                method: 'POST', body: JSON.stringify({ action: "submitBooking", userId: globalUserId, bookingData: bData })
             }).then(() => {
                 alert('預約已送出！請等待店長確認通知。');
                 liff.closeWindow();
             });
-        }
-
-        function submitNewCar() {
-            document.getElementById('loader').style.display = 'flex';
-            const data = {
-                lineName: globalLineName,
-                plate: document.getElementById('nc-plate').value.toUpperCase(),
-                brand: document.getElementById('nc-brand').value,
-                model: document.getElementById('nc-model').value,
-                carClass: document.getElementById('nc-class').value
-            };
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "addCar", userId: globalUserId, carData: data }) })
-            .then(() => { location.reload(); });
         }
     </script>
 </body>
