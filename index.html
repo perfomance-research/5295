@@ -24,7 +24,6 @@
         .btn-outline { background: transparent; border: 1px solid var(--gold); color: var(--gold); }
         .hidden { display: none !important; }
         
-        /* 日曆樣式 */
         .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-family: 'Orbitron'; font-size: 16px; color: var(--gold);}
         .cal-nav button { background: none; border: 1px solid var(--gold); color: var(--gold); padding: 5px 15px; border-radius: 4px; border: 1px solid var(--gold);}
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
@@ -35,7 +34,6 @@
         .cal-day.past { opacity: 0.3; border-color: #222 !important; background: #000; }
         .weather-icon { font-size: 16px; margin-top: 2px;}
         
-        /* 時段與照片區塊 */
         .time-slot-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; border-top: 1px dashed #333; padding-top: 15px;}
         .time-slot { background: #1a1a1a; border: 1px solid #444; color: #ccc; padding: 10px 0; text-align: center; border-radius: 4px; font-size: 13px;}
         .time-slot.busy { background: #000; border-color: #222; color: #444;}
@@ -44,22 +42,18 @@
         .photo-box { height: 100px; background: #111; border: 1px dashed var(--gold); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--gold); background-size: cover; background-position: center; border-radius: 4px; position: relative; transition: background-image 0.3s ease;}
         .photo-main { grid-column: span 2; height: 180px; }
 
-        /* Loader & Toast (半透明浮動提示) */
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,5,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; color: var(--gold); font-family: 'Orbitron'; }
         #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(217, 33, 40, 0.9); color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 14px; z-index: 10000; opacity: 0; transition: 0.3s; pointer-events: none; box-shadow: 0 4px 15px rgba(0,0,0,0.5); font-weight: bold;}
         #toast.show { opacity: 1; }
 
-        /* 裁切器 Modal */
         #crop-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center;}
         #crop-container { width: 100%; height: 70vh; background: #000; display: flex; justify-content: center; align-items: center; }
         #crop-image { display: block; max-width: 100%; max-height: 100%; }
         .modal-controls { padding: 15px; display: flex; justify-content: space-between; background: #000; border-top: 1px solid #333; width: 100%; box-sizing: border-box;}
         .modal-controls button { width: 48%; margin-top: 0; }
         
-        /* 價目表 Modal 優化版 */
         #pricelist-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: flex; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box;}
         .img-wrapper { position: relative; max-width: 100%; display: flex; justify-content: center; align-items: center;}
-        /* 精準的 X 按鈕定位 */
         .close-circle { position: absolute; top: -12px; right: -12px; background: var(--red); color: #fff; border: 2px solid #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 20px; font-weight: bold; line-height: 1; padding: 0; box-shadow: 0 2px 10px rgba(0,0,0,0.5); z-index: 2001; cursor: pointer;}
     </style>
 </head>
@@ -74,13 +68,11 @@
         <div id="view-step1" class="hidden">
             <div class="card">
                 <h2>1. MY VEHICLE</h2>
-                
                 <div id="select-car-section">
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <select id="b-plate" onchange="renderCarPhotos()" style="flex: 1;"></select>
                         <button class="btn btn-outline" style="width: auto; margin-top: 5px; padding: 0 15px; font-size: 12px; white-space: nowrap;" onclick="toggleInlineNewCar(true)">+ 新增</button>
                     </div>
-                    
                     <div style="margin-top: 15px;">
                         <div class="photo-box photo-main" id="p-main" onclick="triggerUpload('main')">+ 主視覺</div>
                         <button class="btn btn-outline" style="padding: 8px; font-size: 12px; margin-top: 10px;" onclick="document.getElementById('extra-photos').classList.toggle('hidden')">➕ 展開細節照片 (選填)</button>
@@ -161,7 +153,7 @@
         </div>
     </div>
 
-    <div id="crop-modal" class="hidden">
+    <div id="crop-modal" class="modal hidden">
         <div id="crop-container"><img id="crop-image"></div>
         <div class="modal-controls">
             <button class="btn btn-outline" onclick="cancelCrop()">取消</button>
@@ -169,7 +161,7 @@
         </div>
     </div>
 
-    <div id="pricelist-modal" class="hidden">
+    <div id="pricelist-modal" class="modal hidden" style="background: rgba(0,0,0,0.85); padding: 20px;">
         <div class="img-wrapper">
             <button class="close-circle" onclick="document.getElementById('pricelist-modal').classList.add('hidden')">✕</button>
             <img src="./list.jpg" alt="價目表" style="max-width: 100%; max-height: 85vh; object-fit: contain; border-radius: 8px; border: 2px solid var(--gold);">
@@ -180,9 +172,9 @@
 
     <script>
         // ==========================================
-        // 系統設定區
+        // 🚨 系統設定區 (請務必填寫)
         // ==========================================
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwtNgCKTt8WfjNIWsRDN7FcatwaomCCkrf_sJY4GDY2drzo9P6EWQCUswUBDzk6tNjg4A/exec'; 
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyncI7HVO1YhZlr4SbQrUAyh33Muzpvx0ctnbKrL8xb9PVutasIfIivYz7g68NEQEiJGA/exec'; 
         const LIFF_ID = '2008811649-QZq68T5c'; 
         const DEFAULT_IMG = 'https://via.placeholder.com/800x400/111111/d1c1a5?text=NO+IMAGE';
 
@@ -195,14 +187,12 @@
         let currentCalMonth = new Date().getMonth();
         let weatherData = {};
 
-        // --- Toast 提示 (不干擾畫面的小浮窗) ---
         function showToast(msg) {
             const t = document.getElementById('toast');
             t.innerText = msg; t.classList.add('show');
             setTimeout(() => t.classList.remove('show'), 3000);
         }
 
-        // --- 1. 系統初始化 ---
         window.onload = function() {
             liff.init({ liffId: LIFF_ID }).then(() => {
                 if (!liff.isLoggedIn()) { liff.login(); return; }
@@ -212,7 +202,6 @@
                 });
             }).catch(err => { alert('LIFF 初始化失敗'); });
             
-            // 車牌自動轉大寫加 Dash
             const plateInput = document.getElementById('nc-plate');
             if (plateInput) {
                 plateInput.addEventListener('input', function(e) {
@@ -241,22 +230,18 @@
                 
                 carOptionsData = userRes.data.carOptions || [];
                 userCars = userRes.data.cars || [];
-                
                 document.getElementById('view-step1').classList.remove('hidden');
                 
                 if (userCars.length === 0) {
                     toggleInlineNewCar(true);
                     document.getElementById('btn-cancel-nc').style.display = 'none';
-                } else {
-                    initBookingForm();
-                }
+                } else { initBookingForm(); }
                 renderCalendar(currentCalYear, currentCalMonth);
             }).catch(err => {
                 document.getElementById('loader').style.display = 'none'; alert('資料載入異常');
             });
         }
 
-        // --- 內嵌新增車庫 ---
         function toggleInlineNewCar(show) {
             if (show) {
                 populateBrandDropdown();
@@ -309,7 +294,6 @@
             
             document.getElementById('loader').style.display = 'flex';
             const data = { lineName: globalLineName, plate: plate, brand: brand, model: model, carClass: document.getElementById('nc-class').value, imageBase64: newCarBase64 };
-            
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "addCar", userId: globalUserId, carData: data }) })
             .then(res => res.json()).then(res => {
                 if(res.status === 'success') location.reload(); 
@@ -317,7 +301,6 @@
             }).catch(() => { document.getElementById('loader').style.display = 'none'; alert('連線異常'); });
         }
 
-        // --- 圖片編輯與即時顯示 (無變形裁切) ---
         function triggerUpload(slot) {
             currentUploadSlot = slot;
             document.getElementById('file-uploader').value = '';
@@ -332,7 +315,6 @@
                 image.src = event.target.result;
                 document.getElementById('crop-modal').classList.remove('hidden');
                 if (cropper) cropper.destroy(); 
-                // viewMode: 2 確保裁切框不超過圖片，解決變形問題
                 cropper = new Cropper(image, { aspectRatio: 16 / 9, viewMode: 2, autoCropArea: 0.9, background: false });
             };
             reader.readAsDataURL(file);
@@ -342,7 +324,6 @@
 
         function confirmCrop() {
             if (!cropper) return;
-            // 不強制指定大小，由比例去抓，避免擠壓
             let canvas = cropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
             let base64 = canvas.toDataURL('image/jpeg', 0.8);
             cancelCrop();
@@ -366,7 +347,6 @@
             }
         }
 
-        // --- 即時渲染照片 ---
         function initBookingForm() {
             const select = document.getElementById('b-plate');
             select.innerHTML = '';
@@ -389,7 +369,6 @@
             setPhoto('p-3', car.photo3, '+ 細節 3'); setPhoto('p-4', car.photo4, '+ 細節 4');
         }
 
-        // --- 預約與日曆邏輯 (維持不變) ---
         function changeMonth(offset) {
             currentCalMonth += offset;
             if (currentCalMonth > 11) { currentCalMonth = 0; currentCalYear++; }
@@ -452,7 +431,8 @@
             if(selectedTimeSlots.length === 0) return showToast("請至少選擇 1 個具體時段！");
             document.getElementById('c-plate').innerText = document.getElementById('b-plate').value;
             document.getElementById('c-service').innerText = document.getElementById('b-service').value;
-            document.getElementById('c-dates').innerHTML = selectedTimeSlots.join('<br>');
+            // 修正：第一行也斷行，符合排版美學
+            document.getElementById('c-dates').innerHTML = '<br>' + selectedTimeSlots.join('<br>');
             document.getElementById('view-step1').classList.add('hidden');
             document.getElementById('view-step2').classList.remove('hidden');
             document.getElementById('c-price').innerText = "計算中...";
@@ -469,7 +449,11 @@
             document.getElementById('loader').style.display = 'flex';
             const bData = { plate: document.getElementById('b-plate').value, service: document.getElementById('b-service').value, selectedDates: selectedTimeSlots, price: document.getElementById('c-price').innerText };
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "submitBooking", userId: globalUserId, bookingData: bData }) })
-            .then(() => { alert('預約送出成功！'); liff.closeWindow(); });
+            .then(() => { 
+                alert('預約送出成功！'); 
+                // 預約完成後，自動關閉 LIFF 視窗回到 LINE 聊天室
+                liff.closeWindow(); 
+            });
         }
     </script>
 </body>
