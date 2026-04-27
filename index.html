@@ -447,12 +447,32 @@
 
         function submitFinalBooking() {
             document.getElementById('loader').style.display = 'flex';
-            const bData = { plate: document.getElementById('b-plate').value, service: document.getElementById('b-service').value, selectedDates: selectedTimeSlots, price: document.getElementById('c-price').innerText };
+            const bData = { 
+                plate: document.getElementById('b-plate').value, 
+                service: document.getElementById('b-service').value, 
+                selectedDates: selectedTimeSlots, 
+                price: document.getElementById('c-price').innerText 
+            };
+            
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "submitBooking", userId: globalUserId, bookingData: bData }) })
-            .then(() => { 
-                alert('預約送出成功！'); 
-                // 預約完成後，自動關閉 LIFF 視窗回到 LINE 聊天室
-                liff.closeWindow(); 
+            .then(res => res.json())
+            .then(res => {
+                document.getElementById('loader').style.display = 'none'; // 先把 loading 關掉
+                if (res.status === 'success') {
+                    alert('預約送出成功！店家將盡快與您聯繫。');
+                    // 判斷：如果在 LINE 裡面就關閉視窗，如果在外部瀏覽器就跳回首頁
+                    if (liff.isInClient()) {
+                        liff.closeWindow();
+                    } else {
+                        location.reload(); 
+                    }
+                } else {
+                    alert('系統錯誤：' + res.message);
+                }
+            })
+            .catch(err => {
+                document.getElementById('loader').style.display = 'none';
+                alert('連線異常，請稍後再試。');
             });
         }
     </script>
