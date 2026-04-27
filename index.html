@@ -26,12 +26,12 @@
         
         /* 日曆樣式 */
         .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-family: 'Orbitron'; font-size: 16px; color: var(--gold);}
-        .cal-nav button { background: none; border: 1px solid var(--gold); color: var(--gold); padding: 5px 15px; border-radius: 4px;}
+        .cal-nav button { background: none; border: 1px solid var(--gold); color: var(--gold); padding: 5px 15px; border-radius: 4px; border: 1px solid var(--gold);}
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
         .cal-header { font-size: 12px; color: #aaa; padding-bottom: 5px; border-bottom: 1px solid #333;}
         .cal-day { background: #111; border: 1px solid #333; border-radius: 4px; padding: 8px 2px; font-size: 12px; height: 50px; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: 0.2s;}
         .cal-day.has-weather { border-color: rgba(209, 193, 165, 0.4); }
-        .cal-day.active { border: 2px solid var(--gold) !important; background: rgba(209, 193, 165, 0.15);}
+        .cal-day.active { border: 2px solid var(--red) !important; background: rgba(217, 33, 40, 0.15);}
         .cal-day.past { opacity: 0.3; border-color: #222 !important; background: #000; }
         .weather-icon { font-size: 16px; margin-top: 2px;}
         
@@ -41,21 +41,26 @@
         .time-slot.busy { background: #000; border-color: #222; color: #444;}
         .time-slot.selected { border: 1px solid var(--red); background: rgba(217, 33, 40, 0.15); color: #fff;}
         .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .photo-box { height: 100px; background: #111; border: 1px dashed var(--gold); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--gold); background-size: cover; background-position: center; border-radius: 4px;}
+        .photo-box { height: 100px; background: #111; border: 1px dashed var(--gold); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--gold); background-size: cover; background-position: center; border-radius: 4px; position: relative; transition: background-image 0.3s ease;}
         .photo-main { grid-column: span 2; height: 180px; }
 
-        /* Loader & Toast */
+        /* Loader & Toast (半透明浮動提示) */
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,5,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; color: var(--gold); font-family: 'Orbitron'; }
-        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--red); color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 14px; z-index: 10000; opacity: 0; transition: 0.3s; pointer-events: none;}
+        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(217, 33, 40, 0.9); color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 14px; z-index: 10000; opacity: 0; transition: 0.3s; pointer-events: none; box-shadow: 0 4px 15px rgba(0,0,0,0.5); font-weight: bold;}
         #toast.show { opacity: 1; }
 
-        /* Modal (裁切與價目表共用) */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center;}
-        #crop-container { flex: 1; width: 100%; max-height: 80vh; background: #000; display: flex; justify-content: center; align-items: center; }
-        #crop-image { max-width: 100%; max-height: 100%; }
+        /* 裁切器 Modal */
+        #crop-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center;}
+        #crop-container { width: 100%; height: 70vh; background: #000; display: flex; justify-content: center; align-items: center; }
+        #crop-image { display: block; max-width: 100%; max-height: 100%; }
         .modal-controls { padding: 15px; display: flex; justify-content: space-between; background: #000; border-top: 1px solid #333; width: 100%; box-sizing: border-box;}
         .modal-controls button { width: 48%; margin-top: 0; }
-        .close-circle { position: absolute; top: 20px; right: 20px; background: var(--red); color: #fff; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: 18px; line-height: 1; padding: 0;}
+        
+        /* 價目表 Modal 優化版 */
+        #pricelist-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: flex; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box;}
+        .img-wrapper { position: relative; max-width: 100%; display: flex; justify-content: center; align-items: center;}
+        /* 精準的 X 按鈕定位 */
+        .close-circle { position: absolute; top: -12px; right: -12px; background: var(--red); color: #fff; border: 2px solid #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 20px; font-weight: bold; line-height: 1; padding: 0; box-shadow: 0 2px 10px rgba(0,0,0,0.5); z-index: 2001; cursor: pointer;}
     </style>
 </head>
 <body>
@@ -91,28 +96,19 @@
                 <div id="inline-newcar-form" class="hidden" style="margin-top: 15px; padding: 15px; border: 1px dashed var(--gold); border-radius: 8px; background: rgba(0,0,0,0.3);">
                     <h3 style="margin-top:0; color: var(--gold); font-size: 16px; font-family:'Orbitron';">CREATE GARAGE</h3>
                     <div class="photo-box photo-main" id="nc-photo" onclick="triggerUpload('new-main')">+ 點擊上傳主視覺 (選填)</div>
-                    
                     <label>車牌號碼 <span style="color:var(--red);">*</span></label>
                     <input type="text" id="nc-plate" placeholder="例如: ABC-5295" style="text-transform: uppercase;">
-                    
                     <label>廠牌 <span style="color:var(--red);">*</span></label>
-                    <select id="nc-brand" onchange="onBrandChange()">
-                        <option value="">請選擇廠牌</option>
-                    </select>
+                    <select id="nc-brand" onchange="onBrandChange()"><option value="">請選擇廠牌</option></select>
                     <input type="text" id="nc-brand-other" class="hidden" placeholder="請手動輸入廠牌">
-
                     <label>型號 <span style="color:var(--red);">*</span></label>
-                    <select id="nc-model" onchange="onModelChange()">
-                        <option value="">請先選擇廠牌</option>
-                    </select>
+                    <select id="nc-model" onchange="onModelChange()"><option value="">請先選擇廠牌</option></select>
                     <input type="text" id="nc-model-other" class="hidden" placeholder="請手動輸入型號">
-
                     <label>車輛級距</label>
                     <select id="nc-class">
                         <option value="轎車">轎車</option><option value="休旅車、旅行車">休旅車、旅行車</option>
                         <option value="大型休旅車">大型休旅車</option><option value="商務車">商務車</option>
                     </select>
-                    
                     <div style="display:flex; gap:10px; margin-top: 20px;">
                         <button class="btn btn-outline" style="margin-top:0;" onclick="toggleInlineNewCar(false)" id="btn-cancel-nc">取消</button>
                         <button class="btn" style="margin-top:0;" onclick="submitNewCar()">確認新增</button>
@@ -130,7 +126,6 @@
                     <p style="margin-top:20px; font-size:14px; color:var(--gold);">選擇具體時段 <span style="color:#888; font-size:12px;">(反灰代表已被預約)</span></p>
                     <div id="time-slots-body" class="time-slot-container"></div>
                 </div>
-
                 <div style="margin-top: 15px; padding: 10px; background: #111; border-radius: 4px; font-size: 13px;">
                     已選時段 (最多3個)：<br><span id="selected-dates-text" style="color: var(--red); font-weight: bold;">尚未選擇</span>
                 </div>
@@ -139,7 +134,6 @@
             <div class="card">
                 <h2>3. SERVICE</h2>
                 <button type="button" class="btn btn-outline" style="padding: 10px; font-size: 13px; margin-bottom: 15px;" onclick="document.getElementById('pricelist-modal').classList.remove('hidden')">📋 查看詳細價目表</button>
-                
                 <select id="b-service">
                     <option value="精緻洗車">精緻洗車</option><option value="精緻打蠟">精緻打蠟</option>
                     <option value="鍍膜維護">鍍膜維護</option><option value="除油膜+玻璃鍍膜">除油膜+玻璃鍍膜</option>
@@ -167,7 +161,7 @@
         </div>
     </div>
 
-    <div id="crop-modal" class="modal hidden">
+    <div id="crop-modal" class="hidden">
         <div id="crop-container"><img id="crop-image"></div>
         <div class="modal-controls">
             <button class="btn btn-outline" onclick="cancelCrop()">取消</button>
@@ -175,9 +169,11 @@
         </div>
     </div>
 
-    <div id="pricelist-modal" class="modal hidden" style="background: rgba(0,0,0,0.85); padding: 20px;">
-        <button class="close-circle" onclick="document.getElementById('pricelist-modal').classList.add('hidden')">✕</button>
-        <img src="./list.jpg" alt="價目表" style="max-width: 100%; max-height: 90vh; border-radius: 8px; border: 2px solid var(--gold);">
+    <div id="pricelist-modal" class="hidden">
+        <div class="img-wrapper">
+            <button class="close-circle" onclick="document.getElementById('pricelist-modal').classList.add('hidden')">✕</button>
+            <img src="./list.jpg" alt="價目表" style="max-width: 100%; max-height: 85vh; object-fit: contain; border-radius: 8px; border: 2px solid var(--gold);">
+        </div>
     </div>
 
     <input type="file" id="file-uploader" accept="image/*" style="display:none;">
@@ -199,11 +195,11 @@
         let currentCalMonth = new Date().getMonth();
         let weatherData = {};
 
-        // --- Toast 提示 ---
+        // --- Toast 提示 (不干擾畫面的小浮窗) ---
         function showToast(msg) {
             const t = document.getElementById('toast');
             t.innerText = msg; t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2500);
+            setTimeout(() => t.classList.remove('show'), 3000);
         }
 
         // --- 1. 系統初始化 ---
@@ -250,7 +246,7 @@
                 
                 if (userCars.length === 0) {
                     toggleInlineNewCar(true);
-                    document.getElementById('btn-cancel-nc').style.display = 'none'; // 沒車不能取消
+                    document.getElementById('btn-cancel-nc').style.display = 'none';
                 } else {
                     initBookingForm();
                 }
@@ -260,7 +256,7 @@
             });
         }
 
-        // --- 內嵌新增車庫邏輯 ---
+        // --- 內嵌新增車庫 ---
         function toggleInlineNewCar(show) {
             if (show) {
                 populateBrandDropdown();
@@ -300,35 +296,28 @@
 
         function onModelChange() {
             let modelSel = document.getElementById('nc-model');
-            if (modelSel.value === 'other') {
-                document.getElementById('nc-model-other').classList.remove('hidden');
-            } else {
-                document.getElementById('nc-model-other').classList.add('hidden');
-                let opt = modelSel.options[modelSel.selectedIndex];
-                if(opt.dataset.class) document.getElementById('nc-class').value = opt.dataset.class;
-            }
+            if (modelSel.value === 'other') { document.getElementById('nc-model-other').classList.remove('hidden'); } 
+            else { document.getElementById('nc-model-other').classList.add('hidden'); let opt = modelSel.options[modelSel.selectedIndex]; if(opt.dataset.class) document.getElementById('nc-class').value = opt.dataset.class; }
         }
 
         function submitNewCar() {
             const plate = document.getElementById('nc-plate').value.trim();
-            let brand = document.getElementById('nc-brand').value;
-            if(brand === 'other') brand = document.getElementById('nc-brand-other').value.trim();
-            let model = document.getElementById('nc-model').value;
-            if(model === 'other') model = document.getElementById('nc-model-other').value.trim();
+            let brand = document.getElementById('nc-brand').value; if(brand === 'other') brand = document.getElementById('nc-brand-other').value.trim();
+            let model = document.getElementById('nc-model').value; if(model === 'other') model = document.getElementById('nc-model-other').value.trim();
             
-            if(!plate || !brand || !model) return alert('錯誤：請確實填寫車牌、廠牌與型號！');
+            if(!plate || !brand || !model) return alert('請填寫車牌、廠牌與型號！');
             
             document.getElementById('loader').style.display = 'flex';
             const data = { lineName: globalLineName, plate: plate, brand: brand, model: model, carClass: document.getElementById('nc-class').value, imageBase64: newCarBase64 };
             
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "addCar", userId: globalUserId, carData: data }) })
             .then(res => res.json()).then(res => {
-                if(res.status === 'success') location.reload(); // 重整取得最新車庫
+                if(res.status === 'success') location.reload(); 
                 else { document.getElementById('loader').style.display = 'none'; alert('錯誤：' + res.message); }
             }).catch(() => { document.getElementById('loader').style.display = 'none'; alert('連線異常'); });
         }
 
-        // --- 圖片編輯與即時顯示 (Optimistic UI) ---
+        // --- 圖片編輯與即時顯示 (無變形裁切) ---
         function triggerUpload(slot) {
             currentUploadSlot = slot;
             document.getElementById('file-uploader').value = '';
@@ -343,7 +332,8 @@
                 image.src = event.target.result;
                 document.getElementById('crop-modal').classList.remove('hidden');
                 if (cropper) cropper.destroy(); 
-                cropper = new Cropper(image, { aspectRatio: 16 / 9, viewMode: 1, autoCropArea: 0.8, background: false });
+                // viewMode: 2 確保裁切框不超過圖片，解決變形問題
+                cropper = new Cropper(image, { aspectRatio: 16 / 9, viewMode: 2, autoCropArea: 0.9, background: false });
             };
             reader.readAsDataURL(file);
         };
@@ -352,7 +342,8 @@
 
         function confirmCrop() {
             if (!cropper) return;
-            let canvas = cropper.getCroppedCanvas({ maxWidth: 1000, maxHeight: 1000, imageSmoothingQuality: 'high' });
+            // 不強制指定大小，由比例去抓，避免擠壓
+            let canvas = cropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
             let base64 = canvas.toDataURL('image/jpeg', 0.8);
             cancelCrop();
 
@@ -361,7 +352,6 @@
                 document.getElementById('nc-photo').style.backgroundImage = `url('${base64}')`;
                 document.getElementById('nc-photo').innerHTML = '';
             } else {
-                // 視覺預判黑科技：畫面先瞬間換上照片，背景再默默上傳
                 document.getElementById('p-' + currentUploadSlot).style.backgroundImage = `url('${base64}')`;
                 document.getElementById('p-' + currentUploadSlot).innerHTML = '';
                 showToast("背景上傳儲存中...");
@@ -371,12 +361,12 @@
                 .then(res => res.json()).then(res => {
                     let car = userCars.find(c => c.plate === plate);
                     if(currentUploadSlot==='main') car.photoMain = res.data; else car['photo'+currentUploadSlot] = res.data;
-                    showToast("照片更新成功！");
+                    showToast("照片上傳成功！");
                 });
             }
         }
 
-        // --- 預約與日曆邏輯 ---
+        // --- 即時渲染照片 ---
         function initBookingForm() {
             const select = document.getElementById('b-plate');
             select.innerHTML = '';
@@ -399,6 +389,7 @@
             setPhoto('p-3', car.photo3, '+ 細節 3'); setPhoto('p-4', car.photo4, '+ 細節 4');
         }
 
+        // --- 預約與日曆邏輯 (維持不變) ---
         function changeMonth(offset) {
             currentCalMonth += offset;
             if (currentCalMonth > 11) { currentCalMonth = 0; currentCalYear++; }
@@ -449,7 +440,7 @@
                 selectedTimeSlots = selectedTimeSlots.filter(t => t !== displayStr);
                 el.classList.remove('selected');
             } else {
-                if (selectedTimeSlots.length >= 3) return alert("最多選擇 3 個時段！");
+                if (selectedTimeSlots.length >= 3) return showToast("最多選擇 3 個時段！");
                 selectedTimeSlots.push(displayStr);
                 el.classList.add('selected');
             }
@@ -458,7 +449,7 @@
         }
 
         function goToStep2() {
-            if(selectedTimeSlots.length === 0) return alert("請至少選擇 1 個具體時段！");
+            if(selectedTimeSlots.length === 0) return showToast("請至少選擇 1 個具體時段！");
             document.getElementById('c-plate').innerText = document.getElementById('b-plate').value;
             document.getElementById('c-service').innerText = document.getElementById('b-service').value;
             document.getElementById('c-dates').innerHTML = selectedTimeSlots.join('<br>');
