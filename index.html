@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>5295 STUDIO | 頂級汽車美容</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
-    
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
 
@@ -26,76 +24,98 @@
         .btn-outline { background: transparent; border: 1px solid var(--gold); color: var(--gold); }
         .hidden { display: none !important; }
         
-        /* 天氣日曆樣式 */
+        /* 日曆樣式 */
         .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-family: 'Orbitron'; font-size: 16px; color: var(--gold);}
-        .cal-nav button { background: none; border: 1px solid var(--gold); color: var(--gold); padding: 5px 15px; border-radius: 4px; cursor: pointer;}
+        .cal-nav button { background: none; border: 1px solid var(--gold); color: var(--gold); padding: 5px 15px; border-radius: 4px;}
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
         .cal-header { font-size: 12px; color: #aaa; padding-bottom: 5px; border-bottom: 1px solid #333;}
-        .cal-day { background: #111; border: 1px solid #333; border-radius: 4px; padding: 8px 2px; font-size: 12px; height: 50px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s;}
+        .cal-day { background: #111; border: 1px solid #333; border-radius: 4px; padding: 8px 2px; font-size: 12px; height: 50px; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: 0.2s;}
         .cal-day.has-weather { border-color: rgba(209, 193, 165, 0.4); }
         .cal-day.active { border: 2px solid var(--gold) !important; background: rgba(209, 193, 165, 0.15);}
-        .cal-day.past { opacity: 0.3; cursor: not-allowed; border-color: #222 !important; background: #000; }
+        .cal-day.past { opacity: 0.3; border-color: #222 !important; background: #000; }
         .weather-icon { font-size: 16px; margin-top: 2px;}
         
-        /* 時段選擇器 */
+        /* 時段與照片區塊 */
         .time-slot-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; border-top: 1px dashed #333; padding-top: 15px;}
-        .time-slot { background: #1a1a1a; border: 1px solid #444; color: #ccc; padding: 10px 0; text-align: center; border-radius: 4px; font-size: 13px; cursor: pointer; transition: 0.2s;}
-        .time-slot.busy { background: #000; border-color: #222; color: #444; cursor: not-allowed;}
+        .time-slot { background: #1a1a1a; border: 1px solid #444; color: #ccc; padding: 10px 0; text-align: center; border-radius: 4px; font-size: 13px;}
+        .time-slot.busy { background: #000; border-color: #222; color: #444;}
         .time-slot.selected { border: 1px solid var(--red); background: rgba(217, 33, 40, 0.15); color: #fff;}
-        
-        /* 照片區塊 */
         .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .photo-box { height: 100px; background: #111; border: 1px dashed var(--gold); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--gold); cursor: pointer; background-size: cover; background-position: center; border-radius: 4px;}
+        .photo-box { height: 100px; background: #111; border: 1px dashed var(--gold); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--gold); background-size: cover; background-position: center; border-radius: 4px;}
         .photo-main { grid-column: span 2; height: 180px; }
 
-        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999; color: var(--gold); font-family: 'Orbitron'; }
-        
-        /* 圖片裁切器專用 UI */
-        #crop-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 1000; display: flex; flex-direction: column; }
-        #crop-container { flex: 1; width: 100%; overflow: hidden; background: #111; display: flex; justify-content: center; align-items: center; }
+        /* Loader & Toast */
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,5,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; color: var(--gold); font-family: 'Orbitron'; }
+        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--red); color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 14px; z-index: 10000; opacity: 0; transition: 0.3s; pointer-events: none;}
+        #toast.show { opacity: 1; }
+
+        /* Modal (裁切與價目表共用) */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center;}
+        #crop-container { flex: 1; width: 100%; max-height: 80vh; background: #000; display: flex; justify-content: center; align-items: center; }
         #crop-image { max-width: 100%; max-height: 100%; }
-        .crop-controls { padding: 15px; display: flex; justify-content: space-between; background: #000; border-top: 1px solid #333; }
-        .crop-controls button { width: 48%; margin-top: 0; }
+        .modal-controls { padding: 15px; display: flex; justify-content: space-between; background: #000; border-top: 1px solid #333; width: 100%; box-sizing: border-box;}
+        .modal-controls button { width: 48%; margin-top: 0; }
+        .close-circle { position: absolute; top: 20px; right: 20px; background: var(--red); color: #fff; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: 18px; line-height: 1; padding: 0;}
     </style>
 </head>
 <body>
 
-    <div id="loader"><h1 class="logo-text">52<span>9</span>5</h1><p id="loader-text">SYSTEM LOADING...</p></div>
+    <div id="loader"><h1 class="logo-text">52<span>9</span>5</h1><p>SYSTEM LOADING...</p></div>
+    <div id="toast">處理中...</div>
     
     <header><h1 class="logo-text">52<span>9</span>5 STUDIO</h1></header>
 
     <div class="container">
-        
-        <div id="view-newcar" class="hidden">
-            <div class="card">
-                <h2>CREATE GARAGE</h2>
-                <div class="photo-box photo-main" id="nc-photo" onclick="triggerUpload('new-main')">+ 點擊上傳愛車主視覺 (選填)</div>
-                <label>車牌號碼 <span style="color:var(--red);">*</span></label><input type="text" id="nc-plate" placeholder="例如: ABC-5295" style="text-transform: uppercase;">
-                <label>廠牌 <span style="color:var(--red);">*</span></label><input type="text" id="nc-brand" placeholder="例如: Porsche">
-                <label>型號 <span style="color:var(--red);">*</span></label><input type="text" id="nc-model" placeholder="例如: Macan">
-                <label>車輛級距</label>
-                <select id="nc-class">
-                    <option value="轎車">轎車</option><option value="休旅車、旅行車">休旅車、旅行車</option>
-                    <option value="大型休旅車">大型休旅車</option><option value="商務車">商務車</option>
-                </select>
-                <button class="btn" onclick="submitNewCar()">建立專屬車庫</button>
-            </div>
-        </div>
-
         <div id="view-step1" class="hidden">
             <div class="card">
                 <h2>1. MY VEHICLE</h2>
-                <div style="display: flex; gap: 10px;">
-                    <select id="b-plate" onchange="renderCarPhotos()" style="flex: 1;"></select>
+                
+                <div id="select-car-section">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <select id="b-plate" onchange="renderCarPhotos()" style="flex: 1;"></select>
+                        <button class="btn btn-outline" style="width: auto; margin-top: 5px; padding: 0 15px; font-size: 12px; white-space: nowrap;" onclick="toggleInlineNewCar(true)">+ 新增</button>
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <div class="photo-box photo-main" id="p-main" onclick="triggerUpload('main')">+ 主視覺</div>
+                        <button class="btn btn-outline" style="padding: 8px; font-size: 12px; margin-top: 10px;" onclick="document.getElementById('extra-photos').classList.toggle('hidden')">➕ 展開細節照片 (選填)</button>
+                        <div id="extra-photos" class="photo-grid hidden">
+                            <div class="photo-box" id="p-1" onclick="triggerUpload('1')">+ 細節 1</div>
+                            <div class="photo-box" id="p-2" onclick="triggerUpload('2')">+ 細節 2</div>
+                            <div class="photo-box" id="p-3" onclick="triggerUpload('3')">+ 細節 3</div>
+                            <div class="photo-box" id="p-4" onclick="triggerUpload('4')">+ 細節 4</div>
+                        </div>
+                    </div>
                 </div>
-                <div style="margin-top: 15px;">
-                    <div class="photo-box photo-main" id="p-main" onclick="triggerUpload('main')">+ 主視覺</div>
-                    <button class="btn btn-outline" style="padding: 8px; font-size: 12px; margin-top: 10px;" onclick="document.getElementById('extra-photos').classList.toggle('hidden')">➕ 展開細節照片</button>
-                    <div id="extra-photos" class="photo-grid hidden">
-                        <div class="photo-box" id="p-1" onclick="triggerUpload('1')">+ 細節 1</div>
-                        <div class="photo-box" id="p-2" onclick="triggerUpload('2')">+ 細節 2</div>
-                        <div class="photo-box" id="p-3" onclick="triggerUpload('3')">+ 細節 3</div>
-                        <div class="photo-box" id="p-4" onclick="triggerUpload('4')">+ 細節 4</div>
+
+                <div id="inline-newcar-form" class="hidden" style="margin-top: 15px; padding: 15px; border: 1px dashed var(--gold); border-radius: 8px; background: rgba(0,0,0,0.3);">
+                    <h3 style="margin-top:0; color: var(--gold); font-size: 16px; font-family:'Orbitron';">CREATE GARAGE</h3>
+                    <div class="photo-box photo-main" id="nc-photo" onclick="triggerUpload('new-main')">+ 點擊上傳主視覺 (選填)</div>
+                    
+                    <label>車牌號碼 <span style="color:var(--red);">*</span></label>
+                    <input type="text" id="nc-plate" placeholder="例如: ABC-5295" style="text-transform: uppercase;">
+                    
+                    <label>廠牌 <span style="color:var(--red);">*</span></label>
+                    <select id="nc-brand" onchange="onBrandChange()">
+                        <option value="">請選擇廠牌</option>
+                    </select>
+                    <input type="text" id="nc-brand-other" class="hidden" placeholder="請手動輸入廠牌">
+
+                    <label>型號 <span style="color:var(--red);">*</span></label>
+                    <select id="nc-model" onchange="onModelChange()">
+                        <option value="">請先選擇廠牌</option>
+                    </select>
+                    <input type="text" id="nc-model-other" class="hidden" placeholder="請手動輸入型號">
+
+                    <label>車輛級距</label>
+                    <select id="nc-class">
+                        <option value="轎車">轎車</option><option value="休旅車、旅行車">休旅車、旅行車</option>
+                        <option value="大型休旅車">大型休旅車</option><option value="商務車">商務車</option>
+                    </select>
+                    
+                    <div style="display:flex; gap:10px; margin-top: 20px;">
+                        <button class="btn btn-outline" style="margin-top:0;" onclick="toggleInlineNewCar(false)" id="btn-cancel-nc">取消</button>
+                        <button class="btn" style="margin-top:0;" onclick="submitNewCar()">確認新增</button>
                     </div>
                 </div>
             </div>
@@ -118,17 +138,14 @@
 
             <div class="card">
                 <h2>3. SERVICE</h2>
+                <button type="button" class="btn btn-outline" style="padding: 10px; font-size: 13px; margin-bottom: 15px;" onclick="document.getElementById('pricelist-modal').classList.remove('hidden')">📋 查看詳細價目表</button>
+                
                 <select id="b-service">
-                    <option value="精緻洗車">精緻洗車</option>
-                    <option value="精緻打蠟">精緻打蠟</option>
-                    <option value="鍍膜維護">鍍膜維護</option>
-                    <option value="除油膜+玻璃鍍膜">除油膜+玻璃鍍膜</option>
-                    <option value="深層美容">深層美容</option>
-                    <option value="經典鍍膜">經典鍍膜</option>
-                    <option value="精緻鍍膜">精緻鍍膜</option>
-                    <option value="臭氧除臭">臭氧除臭</option>
-                    <option value="引擎室清洗">引擎室清洗</option>
-                    <option value="客製化服務">客製化服務</option>
+                    <option value="精緻洗車">精緻洗車</option><option value="精緻打蠟">精緻打蠟</option>
+                    <option value="鍍膜維護">鍍膜維護</option><option value="除油膜+玻璃鍍膜">除油膜+玻璃鍍膜</option>
+                    <option value="深層美容">深層美容</option><option value="經典鍍膜">經典鍍膜</option>
+                    <option value="精緻鍍膜">精緻鍍膜</option><option value="臭氧除臭">臭氧除臭</option>
+                    <option value="引擎室清洗">引擎室清洗</option><option value="客製化服務">客製化服務</option>
                 </select>
                 <button class="btn" onclick="goToStep2()">下一步：檢視報價</button>
             </div>
@@ -150,70 +167,66 @@
         </div>
     </div>
 
-    <div id="crop-modal" class="hidden">
+    <div id="crop-modal" class="modal hidden">
         <div id="crop-container"><img id="crop-image"></div>
-        <div class="crop-controls">
+        <div class="modal-controls">
             <button class="btn btn-outline" onclick="cancelCrop()">取消</button>
             <button class="btn" onclick="confirmCrop()">確認裁剪</button>
         </div>
+    </div>
+
+    <div id="pricelist-modal" class="modal hidden" style="background: rgba(0,0,0,0.85); padding: 20px;">
+        <button class="close-circle" onclick="document.getElementById('pricelist-modal').classList.add('hidden')">✕</button>
+        <img src="./list.jpg" alt="價目表" style="max-width: 100%; max-height: 90vh; border-radius: 8px; border: 2px solid var(--gold);">
     </div>
 
     <input type="file" id="file-uploader" accept="image/*" style="display:none;">
 
     <script>
         // ==========================================
-        // 系統設定區 (請務必替換)
+        // 系統設定區
         // ==========================================
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzguMx4MGm7jcPFHCOdz4kSPmHYHddCAUBatb1wwGfnbBRwCwvSfhX3qwO93JVr9qkGZA/exec'; 
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwtNgCKTt8WfjNIWsRDN7FcatwaomCCkrf_sJY4GDY2drzo9P6EWQCUswUBDzk6tNjg4A/exec'; 
         const LIFF_ID = '2008811649-QZq68T5c'; 
         const DEFAULT_IMG = 'https://via.placeholder.com/800x400/111111/d1c1a5?text=NO+IMAGE';
 
-        let globalUserId = "";
-        let globalLineName = "";
-        let userCars = [];
-        let newCarBase64 = ""; 
-        let currentUploadSlot = "";
-        let cropper; // 宣告 Cropper 實例
-        
-        let busyTimesFromGoogle = []; 
-        let selectedTimeSlots = [];   
+        let globalUserId = ""; let globalLineName = "";
+        let userCars = []; let carOptionsData = [];
+        let newCarBase64 = ""; let currentUploadSlot = "";
+        let cropper; 
+        let busyTimesFromGoogle = []; let selectedTimeSlots = [];   
         let currentCalYear = new Date().getFullYear();
         let currentCalMonth = new Date().getMonth();
         let weatherData = {};
+
+        // --- Toast 提示 ---
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg; t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
 
         // --- 1. 系統初始化 ---
         window.onload = function() {
             liff.init({ liffId: LIFF_ID }).then(() => {
                 if (!liff.isLoggedIn()) { liff.login(); return; }
                 liff.getProfile().then(p => {
-                    globalUserId = p.userId;
-                    globalLineName = p.displayName;
+                    globalUserId = p.userId; globalLineName = p.displayName;
                     fetchUserData();
                 });
-            }).catch(err => {
-                alert('LIFF 初始化失敗，請在 LINE 中開啟');
-            });
+            }).catch(err => { alert('LIFF 初始化失敗'); });
+            
+            // 車牌自動轉大寫加 Dash
+            const plateInput = document.getElementById('nc-plate');
+            if (plateInput) {
+                plateInput.addEventListener('input', function(e) {
+                    let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                    val = val.replace(/^([A-Z]{2,4})(\d{1,4})/, '$1-$2');
+                    val = val.replace(/^(\d{2,4})([A-Z]{2,4})/, '$1-$2');
+                    e.target.value = val;
+                });
+            }
         };
-
-        // ==========================================
-        // 車牌輸入自動格式化 (自動轉大寫 + 加入 Dash)
-        // ==========================================
-        const plateInput = document.getElementById('nc-plate');
-        if (plateInput) {
-            plateInput.addEventListener('input', function(e) {
-                // 1. 轉大寫，並過濾掉所有非英數字的字元 (包含客人自己打的空白或-)
-                let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-                
-                // 2. 判斷邏輯 A：前面是連續英文，後面接數字 (例如 ABC1234 -> ABC-1234)
-                val = val.replace(/^([A-Z]{2,4})(\d{1,4})/, '$1-$2');
-                
-                // 3. 判斷邏輯 B：前面是連續數字，後面接英文 (例如 1234AB -> 1234-AB)
-                val = val.replace(/^(\d{2,4})([A-Z]{2,4})/, '$1-$2');
-                
-                // 4. 將格式化後的字串顯示回輸入框
-                e.target.value = val;
-            });
-        }
 
         function fetchUserData() {
             Promise.all([
@@ -229,64 +242,117 @@
                         weatherData[dateStr] = (code <= 1) ? '☀️' : (code <= 3 ? '☁️' : '🌧️');
                     });
                 }
-                if (userRes.data.cars.length === 0) {
-                    document.getElementById('view-newcar').classList.remove('hidden');
+                
+                carOptionsData = userRes.data.carOptions || [];
+                userCars = userRes.data.cars || [];
+                
+                document.getElementById('view-step1').classList.remove('hidden');
+                
+                if (userCars.length === 0) {
+                    toggleInlineNewCar(true);
+                    document.getElementById('btn-cancel-nc').style.display = 'none'; // 沒車不能取消
                 } else {
-                    userCars = userRes.data.cars;
                     initBookingForm();
-                    renderCalendar(currentCalYear, currentCalMonth);
                 }
+                renderCalendar(currentCalYear, currentCalMonth);
             }).catch(err => {
-                document.getElementById('loader').style.display = 'none';
-                alert('網路異常，讀取資料失敗');
+                document.getElementById('loader').style.display = 'none'; alert('資料載入異常');
             });
         }
 
-        // --- 2. 圖片編輯與裁切 (Cropper.js) ---
+        // --- 內嵌新增車庫邏輯 ---
+        function toggleInlineNewCar(show) {
+            if (show) {
+                populateBrandDropdown();
+                document.getElementById('select-car-section').classList.add('hidden');
+                document.getElementById('inline-newcar-form').classList.remove('hidden');
+            } else {
+                document.getElementById('inline-newcar-form').classList.add('hidden');
+                document.getElementById('select-car-section').classList.remove('hidden');
+            }
+        }
+
+        function populateBrandDropdown() {
+            let brands = [...new Set(carOptionsData.map(o => o.brand))];
+            let html = '<option value="">請選擇廠牌</option>';
+            brands.forEach(b => html += `<option value="${b}">${b}</option>`);
+            html += '<option value="other">其他 (自行輸入)</option>';
+            document.getElementById('nc-brand').innerHTML = html;
+        }
+
+        function onBrandChange() {
+            let brand = document.getElementById('nc-brand').value;
+            let modelSel = document.getElementById('nc-model');
+            if (brand === 'other') {
+                document.getElementById('nc-brand-other').classList.remove('hidden');
+                document.getElementById('nc-model-other').classList.remove('hidden');
+                modelSel.innerHTML = '<option value="other">其他 (自行輸入)</option>';
+            } else {
+                document.getElementById('nc-brand-other').classList.add('hidden');
+                document.getElementById('nc-model-other').classList.add('hidden');
+                let models = carOptionsData.filter(o => o.brand === brand);
+                let html = '<option value="">請選擇型號</option>';
+                models.forEach(m => html += `<option value="${m.model}" data-class="${m.carClass}">${m.model}</option>`);
+                html += '<option value="other">其他 (自行輸入)</option>';
+                modelSel.innerHTML = html;
+            }
+        }
+
+        function onModelChange() {
+            let modelSel = document.getElementById('nc-model');
+            if (modelSel.value === 'other') {
+                document.getElementById('nc-model-other').classList.remove('hidden');
+            } else {
+                document.getElementById('nc-model-other').classList.add('hidden');
+                let opt = modelSel.options[modelSel.selectedIndex];
+                if(opt.dataset.class) document.getElementById('nc-class').value = opt.dataset.class;
+            }
+        }
+
+        function submitNewCar() {
+            const plate = document.getElementById('nc-plate').value.trim();
+            let brand = document.getElementById('nc-brand').value;
+            if(brand === 'other') brand = document.getElementById('nc-brand-other').value.trim();
+            let model = document.getElementById('nc-model').value;
+            if(model === 'other') model = document.getElementById('nc-model-other').value.trim();
+            
+            if(!plate || !brand || !model) return alert('錯誤：請確實填寫車牌、廠牌與型號！');
+            
+            document.getElementById('loader').style.display = 'flex';
+            const data = { lineName: globalLineName, plate: plate, brand: brand, model: model, carClass: document.getElementById('nc-class').value, imageBase64: newCarBase64 };
+            
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "addCar", userId: globalUserId, carData: data }) })
+            .then(res => res.json()).then(res => {
+                if(res.status === 'success') location.reload(); // 重整取得最新車庫
+                else { document.getElementById('loader').style.display = 'none'; alert('錯誤：' + res.message); }
+            }).catch(() => { document.getElementById('loader').style.display = 'none'; alert('連線異常'); });
+        }
+
+        // --- 圖片編輯與即時顯示 (Optimistic UI) ---
         function triggerUpload(slot) {
             currentUploadSlot = slot;
+            document.getElementById('file-uploader').value = '';
             document.getElementById('file-uploader').click();
         }
 
         document.getElementById('file-uploader').onchange = function(e) {
-            let file = e.target.files[0];
-            if (!file) return;
-
-            // 讀取檔案並顯示在裁切器中
+            let file = e.target.files[0]; if (!file) return;
             let reader = new FileReader();
             reader.onload = function(event) {
                 let image = document.getElementById('crop-image');
                 image.src = event.target.result;
                 document.getElementById('crop-modal').classList.remove('hidden');
-
-                if (cropper) cropper.destroy(); // 銷毀舊的實例
-                cropper = new Cropper(image, {
-                    aspectRatio: 16 / 9, // 固定 16:9 比例，適合車輛展示
-                    viewMode: 1,
-                    autoCropArea: 0.8,
-                    background: false
-                });
+                if (cropper) cropper.destroy(); 
+                cropper = new Cropper(image, { aspectRatio: 16 / 9, viewMode: 1, autoCropArea: 0.8, background: false });
             };
             reader.readAsDataURL(file);
-            document.getElementById('file-uploader').value = ''; // 清除 input 確保可重複選擇同檔
         };
 
-        function cancelCrop() {
-            document.getElementById('crop-modal').classList.add('hidden');
-            if (cropper) cropper.destroy();
-        }
+        function cancelCrop() { document.getElementById('crop-modal').classList.add('hidden'); if (cropper) cropper.destroy(); }
 
         function confirmCrop() {
             if (!cropper) return;
-            document.getElementById('loader-text').innerText = 'UPLOADING PHOTO...';
-            document.getElementById('loader').style.display = 'flex';
-
-            // 取得裁切後的圖片並自動壓縮
-            let canvas = cropper.getCroppedCanvas({
-                maxWidth: 1000,
-                maxHeight: 1000,
-                imageSmoothingQuality: 'high',
-            });
+            let canvas = cropper.getCroppedCanvas({ maxWidth: 1000, maxHeight: 1000, imageSmoothingQuality: 'high' });
             let base64 = canvas.toDataURL('image/jpeg', 0.8);
             cancelCrop();
 
@@ -294,62 +360,45 @@
                 newCarBase64 = base64;
                 document.getElementById('nc-photo').style.backgroundImage = `url('${base64}')`;
                 document.getElementById('nc-photo').innerHTML = '';
-                document.getElementById('loader').style.display = 'none';
             } else {
+                // 視覺預判黑科技：畫面先瞬間換上照片，背景再默默上傳
+                document.getElementById('p-' + currentUploadSlot).style.backgroundImage = `url('${base64}')`;
+                document.getElementById('p-' + currentUploadSlot).innerHTML = '';
+                showToast("背景上傳儲存中...");
+                
                 const plate = document.getElementById('b-plate').value;
-                fetch(GAS_URL, {
-                    method: 'POST', body: JSON.stringify({ action: "uploadPhoto", plate: plate, slot: currentUploadSlot, imageBase64: base64 })
-                }).then(res => res.json()).then(res => {
-                    document.getElementById('p-' + currentUploadSlot).style.backgroundImage = `url('${res.data}')`;
-                    document.getElementById('p-' + currentUploadSlot).innerHTML = '';
+                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "uploadPhoto", plate: plate, slot: currentUploadSlot, imageBase64: base64 }) })
+                .then(res => res.json()).then(res => {
                     let car = userCars.find(c => c.plate === plate);
                     if(currentUploadSlot==='main') car.photoMain = res.data; else car['photo'+currentUploadSlot] = res.data;
-                    document.getElementById('loader').style.display = 'none';
-                    alert('相片更新成功！');
-                }).catch(err => {
-                    document.getElementById('loader').style.display = 'none';
-                    alert('上傳失敗，請檢查網路狀態');
+                    showToast("照片更新成功！");
                 });
             }
         }
 
-        // --- 3. 建立新車表單驗證 (解決按鍵沒反應問題) ---
-        function submitNewCar() {
-            const plate = document.getElementById('nc-plate').value.trim().toUpperCase();
-            const brand = document.getElementById('nc-brand').value.trim();
-            const model = document.getElementById('nc-model').value.trim();
-            
-            // 加入完整防呆警告
-            if(!plate || !brand || !model) {
-                alert('錯誤：請確實填寫車牌、廠牌與型號！');
-                return;
-            }
-            if(!globalUserId) {
-                alert('錯誤：無法取得您的 LINE 授權，請重新整理網頁。');
-                return;
-            }
-
-            document.getElementById('loader-text').innerText = 'CREATING GARAGE...';
-            document.getElementById('loader').style.display = 'flex';
-            
-            const data = { lineName: globalLineName, plate: plate, brand: brand, model: model, carClass: document.getElementById('nc-class').value, imageBase64: newCarBase64 };
-            
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "addCar", userId: globalUserId, carData: data }) })
-            .then(res => res.json()).then(res => {
-                if(res.status === 'success') {
-                    alert('專屬車庫建立成功！');
-                    location.reload();
-                } else {
-                    document.getElementById('loader').style.display = 'none';
-                    alert('建檔發生錯誤：' + res.message);
-                }
-            }).catch(err => {
-                document.getElementById('loader').style.display = 'none';
-                alert('伺服器連線異常，請稍後再試。');
-            });
+        // --- 預約與日曆邏輯 ---
+        function initBookingForm() {
+            const select = document.getElementById('b-plate');
+            select.innerHTML = '';
+            userCars.forEach(car => { select.innerHTML += `<option value="${car.plate}">${car.plate}</option>`; });
+            renderCarPhotos();
+            document.getElementById('select-car-section').classList.remove('hidden');
+            document.getElementById('btn-cancel-nc').style.display = 'block';
         }
 
-        // --- 4. 日曆與預約邏輯 (不變) ---
+        function renderCarPhotos() {
+            const plate = document.getElementById('b-plate').value;
+            const car = userCars.find(c => c.plate === plate);
+            const setPhoto = (id, url, text) => {
+                const el = document.getElementById(id);
+                if (url) { el.style.backgroundImage = `url('${url}')`; el.innerHTML = ''; } 
+                else { el.style.backgroundImage = id === 'p-main' ? `url('${DEFAULT_IMG}')` : 'none'; el.innerHTML = id === 'p-main' ? '' : text; }
+            };
+            setPhoto('p-main', car.photoMain, '+ 主視覺');
+            setPhoto('p-1', car.photo1, '+ 細節 1'); setPhoto('p-2', car.photo2, '+ 細節 2');
+            setPhoto('p-3', car.photo3, '+ 細節 3'); setPhoto('p-4', car.photo4, '+ 細節 4');
+        }
+
         function changeMonth(offset) {
             currentCalMonth += offset;
             if (currentCalMonth > 11) { currentCalMonth = 0; currentCalYear++; }
@@ -408,28 +457,6 @@
             document.getElementById('selected-dates-text').innerHTML = selectedTimeSlots.length > 0 ? selectedTimeSlots.join('<br>') : '尚未選擇';
         }
 
-        function initBookingForm() {
-            const select = document.getElementById('b-plate');
-            select.innerHTML = '';
-            userCars.forEach(car => { select.innerHTML += `<option value="${car.plate}">${car.plate}</option>`; });
-            renderCarPhotos();
-            document.getElementById('view-newcar').classList.add('hidden');
-            document.getElementById('view-step1').classList.remove('hidden');
-        }
-
-        function renderCarPhotos() {
-            const plate = document.getElementById('b-plate').value;
-            const car = userCars.find(c => c.plate === plate);
-            const setPhoto = (id, url, text) => {
-                const el = document.getElementById(id);
-                if (url) { el.style.backgroundImage = `url('${url}')`; el.innerHTML = ''; } 
-                else { el.style.backgroundImage = id === 'p-main' ? `url('${DEFAULT_IMG}')` : 'none'; el.innerHTML = id === 'p-main' ? '' : text; }
-            };
-            setPhoto('p-main', car.photoMain, '+ 主視覺');
-            setPhoto('p-1', car.photo1, '+ 細節 1'); setPhoto('p-2', car.photo2, '+ 細節 2');
-            setPhoto('p-3', car.photo3, '+ 細節 3'); setPhoto('p-4', car.photo4, '+ 細節 4');
-        }
-
         function goToStep2() {
             if(selectedTimeSlots.length === 0) return alert("請至少選擇 1 個具體時段！");
             document.getElementById('c-plate').innerText = document.getElementById('b-plate').value;
@@ -448,7 +475,6 @@
         }
 
         function submitFinalBooking() {
-            document.getElementById('loader-text').innerText = 'SUBMITTING BOOKING...';
             document.getElementById('loader').style.display = 'flex';
             const bData = { plate: document.getElementById('b-plate').value, service: document.getElementById('b-service').value, selectedDates: selectedTimeSlots, price: document.getElementById('c-price').innerText };
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "submitBooking", userId: globalUserId, bookingData: bData }) })
