@@ -145,7 +145,7 @@
                 <div id="cal-body" class="calendar-grid" style="margin-top: 5px;"></div>
 
                 <div id="time-selector" class="hidden">
-                    <p style="margin-top:20px; font-size:14px; color:var(--gold);">智慧空檔搜尋結果 <span style="color:#888; font-size:12px;">(最多選3個)</span></p>
+                    <p style="margin-top:20px; font-size:14px; color:var(--gold);">智慧空檔搜尋結果 <span style="color:#888; font-size:12px;">(請務必選滿 3 個志願)</span></p>
                     <div id="time-slots-body" class="time-slot-container"></div>
                 </div>
                 <div style="margin-top: 15px; padding: 10px; background: #111; border-radius: 4px; font-size: 13px;">
@@ -163,7 +163,7 @@
                     <p>車牌：<span id="c-plate"></span></p>
                     <p>工時：<span id="c-duration" style="color:var(--gold);"></span></p>
                     <p>項目：<span id="c-service"></span></p>
-                    <p>日期：<span id="c-dates" style="color:var(--gold);"></span></p>
+                    <p>志願時段：<span id="c-dates" style="color:var(--gold);"></span></p>
                     <hr style="border-color: #333;">
                     <h3 style="margin: 0; color: var(--gold); text-align: center;" id="c-price">計算中...</h3>
                 </div>
@@ -191,10 +191,7 @@
     <input type="file" id="file-uploader" accept="image/*" style="display:none;">
 
     <script>
-        // ==========================================
-        // 🚨 系統設定區
-        // ==========================================
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbw8Z-jqgAh4SKg2zKzDWZcDAVsx9BXuX9flhWM8J69kibwuueJ23MBn2p8Z94LgjZH6eg/exec'; 
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwMqGTB5Xqk16epCRbJ_6D49w4JsgdJsxLe_XpEFzpYTloyHuDPSjKy-suM9XcAP5tivA/exec'; 
         const LIFF_ID = '2008811649-QZq68T5c'; 
         const DEFAULT_IMG = 'https://via.placeholder.com/800x400/111111/d1c1a5?text=NO+IMAGE';
 
@@ -212,7 +209,7 @@
         let currentServicesArray = [];
         let lastSelectedDate = "";
 
-        // 定義階層規則
+        // 階層定義 (數字越大階層越高)
         const washLevels = {"精緻洗車": 1, "精緻打蠟": 2, "深層美容": 3};
         const coatLevels = {"鍍膜維護": 1, "除油膜+玻璃鍍膜": 2, "經典鍍膜": 3, "精緻鍍膜": 4};
 
@@ -264,9 +261,6 @@
             });
         }
 
-        // ==========================================
-        // 嚴謹的服務階層排除邏輯
-        // ==========================================
         function addServiceRow() {
             const container = document.getElementById('service-container');
             if (container.children.length >= 5) return showToast("最多選擇 5 項服務");
@@ -287,7 +281,6 @@
             const selects = document.querySelectorAll('.service-select');
             let selectedValues = Array.from(selects).map(s => s.value);
 
-            // 1. 找出目前已選的最高階層
             let maxWash = 0; let maxCoat = 0;
             selectedValues.forEach(v => {
                 if (washLevels[v] > maxWash) maxWash = washLevels[v];
@@ -297,14 +290,13 @@
             let totalTime = 0;
             let hasSpecialCoating = false;
 
-            // 2. 應用規則：自動清空小於最高階層的選項，並標示 (已包含)
             selects.forEach(select => {
-                // 自動清除被覆蓋的較低階服務
+                // 自動清除被高階服務覆蓋的選項
                 if (select.value && washLevels[select.value] && washLevels[select.value] < maxWash) {
-                    select.value = ""; showToast("已自動移除較低階的洗車服務");
+                    select.value = ""; showToast("已自動移除較低階的服務");
                 }
                 if (select.value && coatLevels[select.value] && coatLevels[select.value] < maxCoat) {
-                    select.value = ""; showToast("已自動移除較低階的鍍膜服務");
+                    select.value = ""; showToast("已自動移除較低階的服務");
                 }
 
                 if (select.value === "精緻鍍膜") hasSpecialCoating = true;
@@ -315,7 +307,6 @@
                     opt.disabled = false;
                     opt.text = opt.text.replace(" (已包含)", "");
 
-                    // 禁用低於最高階層的選項
                     if (washLevels[opt.value] && washLevels[opt.value] < maxWash) {
                         opt.disabled = true; opt.text += " (已包含)";
                     }
@@ -324,14 +315,12 @@
                     }
                 }
                 
-                // 加總有效工時
                 const selectedOpt = select.options[select.selectedIndex];
                 if (selectedOpt && selectedOpt.value !== "" && !selectedOpt.text.includes("(已包含)")) {
                     totalTime += parseInt(selectedOpt.dataset.time || 0);
                 }
             });
 
-            // 更新結果
             currentServicesArray = Array.from(new Set(Array.from(selects).map(s => s.value).filter(v => v !== "")));
             currentTotalDuration = totalTime;
 
@@ -345,7 +334,6 @@
 
             document.getElementById('total-time-text').innerText = displayTime;
             
-            // 重新計算日曆空檔
             if(lastSelectedDate) {
                 document.getElementById('time-slots-body').innerHTML = "";
                 selectedTimeSlots = [];
@@ -354,7 +342,7 @@
             }
         }
 
-        // --- 內嵌新增車庫 --- 
+        // 新增車庫
         function toggleInlineNewCar(show) {
             if (show) {
                 populateBrandDropdown();
@@ -405,7 +393,6 @@
             if(!plate || !brand || !model) return alert('請完整填寫車牌、廠牌與型號！');
             document.getElementById('loader').style.display = 'flex';
             
-            // 移除了 carClass 的傳遞
             const data = { lineName: globalLineName, plate: plate, brand: brand, model: model, imageBase64: newCarBase64 };
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "addCar", userId: globalUserId, carData: data }) })
             .then(res => res.json()).then(res => {
@@ -414,7 +401,6 @@
             }).catch(() => { document.getElementById('loader').style.display = 'none'; alert('連線異常'); });
         }
 
-        // --- 照片裁切 ---
         function triggerUpload(slot) {
             currentUploadSlot = slot;
             document.getElementById('file-uploader').value = '';
@@ -481,7 +467,6 @@
             setPhoto('p-3', car.photo3, '+ 車尾細節'); setPhoto('p-4', car.photo4, '+ 內裝細節');
         }
 
-        // --- 智慧日曆與時段 ---
         function changeMonth(offset) {
             currentCalMonth += offset;
             if (currentCalMonth > 11) { currentCalMonth = 0; currentCalYear++; }
@@ -504,11 +489,12 @@
                 let dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 
                 let isPast = cellDate < now;
-                let cssClass = isPast ? 'past' : '';
+                let isSunday = cellDate.getDay() === 0;
+                let cssClass = isPast || isSunday ? 'past' : '';
                 
-                if (!isPast && calendarOverview[dateStr] >= 480) cssClass += ' busy';
+                if (!isPast && !isSunday && calendarOverview[dateStr] >= 480) cssClass += ' busy';
 
-                if(isPast) html += `<div class="cal-day ${cssClass}">${d}</div>`;
+                if(isPast || isSunday) html += `<div class="cal-day ${cssClass}">${d}</div>`;
                 else html += `<div class="cal-day ${cssClass}" id="cal-day-${dateStr}" onclick="selectDate('${dateStr}')">${d}</div>`;
             }
             calBody.innerHTML = html;
@@ -559,10 +545,15 @@
             document.getElementById('selected-dates-text').innerHTML = selectedTimeSlots.length > 0 ? '<br>' + selectedTimeSlots.join('<br>') : '尚未選擇';
         }
 
-        // --- 結帳與送出 ---
+        // --- 強制選擇 3 個志願 ---
         function goToStep2() {
             if(currentServicesArray.length === 0) return showToast("請至少選擇 1 項服務！");
-            if(selectedTimeSlots.length === 0) return showToast("請至少選擇 1 個具體時段！");
+            
+            // 強制阻擋機制
+            if(selectedTimeSlots.length !== 3) {
+                alert("為了讓店家能為您安排最佳空檔，請務必選擇「3 個志願時段」！");
+                return;
+            }
             
             document.getElementById('c-plate').innerText = document.getElementById('b-plate').value;
             document.getElementById('c-duration').innerText = document.getElementById('total-time-text').innerText;
@@ -577,7 +568,7 @@
                 method: 'POST', 
                 body: JSON.stringify({ action: "getQuote", plate: document.getElementById('b-plate').value, services: currentServicesArray }) 
             })
-            .then(res => res.json()).then(res => { document.getElementById('c-price').innerText = res.data !== "需現場評估" ? "$" + res.data : "現場評估報價"; });
+            .then(res => res.json()).then(res => { document.getElementById('c-price').innerText = res.data !== "現場評估報價" ? "$" + res.data : "現場評估報價"; });
         }
 
         function goBackStep1() {
@@ -597,7 +588,7 @@
             
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "submitBooking", userId: globalUserId, bookingData: bData }) })
             .then(() => { 
-                alert('預約送出成功！店家將盡快為您確認。'); 
+                alert('預約送出成功！已通知店家，請留意 LINE 通知。'); 
                 liff.closeWindow(); 
             });
         }
