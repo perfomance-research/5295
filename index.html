@@ -29,21 +29,25 @@
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
         .cal-header { font-size: 12px; color: #aaa; padding-bottom: 5px; border-bottom: 1px solid #333;}
         .cal-day { background: #111; border: 1px solid #333; border-radius: 4px; padding: 8px 2px; font-size: 12px; height: 50px; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: 0.2s;}
-        .cal-day.has-weather { border-color: rgba(209, 193, 165, 0.4); }
         .cal-day.active { border: 2px solid var(--red) !important; background: rgba(217, 33, 40, 0.15);}
         .cal-day.past { opacity: 0.3; border-color: #222 !important; background: #000; }
-        .weather-icon { font-size: 16px; margin-top: 2px;}
+        .cal-day.busy { opacity: 0.5; background: #331111; border-color: var(--red); color: #aaa; } /* 滿載日樣式 */
         
         .time-slot-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; border-top: 1px dashed #333; padding-top: 15px;}
         .time-slot { background: #1a1a1a; border: 1px solid #444; color: #ccc; padding: 10px 0; text-align: center; border-radius: 4px; font-size: 13px;}
-        .time-slot.busy { background: #000; border-color: #222; color: #444;}
         .time-slot.selected { border: 1px solid var(--red); background: rgba(217, 33, 40, 0.15); color: #fff;}
         .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .photo-box { height: 100px; background: #111; border: 1px dashed var(--gold); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--gold); background-size: cover; background-position: center; border-radius: 4px; position: relative; transition: background-image 0.3s ease;}
+        .photo-box { height: 100px; background: #111; border: 1px dashed var(--gold); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--gold); background-size: cover; background-position: center; border-radius: 4px; position: relative;}
         .photo-main { grid-column: span 2; height: 180px; }
+        
+        /* 多重服務列樣式 */
+        .service-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; animation: fadeIn 0.3s ease; }
+        .service-row select { margin-top: 0; flex: 1; }
+        .btn-remove { background: transparent; border: 1px solid var(--red); color: var(--red); padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,5,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; color: var(--gold); font-family: 'Orbitron'; }
-        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(217, 33, 40, 0.9); color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 14px; z-index: 10000; opacity: 0; transition: 0.3s; pointer-events: none; box-shadow: 0 4px 15px rgba(0,0,0,0.5); font-weight: bold;}
+        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(217, 33, 40, 0.9); color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 14px; z-index: 10000; opacity: 0; transition: 0.3s; pointer-events: none; font-weight: bold;}
         #toast.show { opacity: 1; }
 
         #crop-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center;}
@@ -54,7 +58,7 @@
         
         #pricelist-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: flex; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box;}
         .img-wrapper { position: relative; max-width: 100%; display: flex; justify-content: center; align-items: center;}
-        .close-circle { position: absolute; top: -12px; right: -12px; background: var(--red); color: #fff; border: 2px solid #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 20px; font-weight: bold; line-height: 1; padding: 0; box-shadow: 0 2px 10px rgba(0,0,0,0.5); z-index: 2001; cursor: pointer;}
+        .close-circle { position: absolute; top: -12px; right: -12px; background: var(--red); color: #fff; border: 2px solid #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 20px; font-weight: bold; line-height: 1; padding: 0; z-index: 2001; cursor: pointer;}
     </style>
 </head>
 <body>
@@ -109,31 +113,50 @@
             </div>
 
             <div class="card">
-                <h2>2. DATE & TIME</h2>
+                <h2>2. SERVICES <span style="font-size: 10px; color:#888;">(最多 5 項)</span></h2>
+                <button type="button" class="btn btn-outline" style="padding: 10px; font-size: 13px; margin-bottom: 15px; margin-top: 0;" onclick="document.getElementById('pricelist-modal').classList.remove('hidden')">📋 查看詳細價目表</button>
+                
+                <div id="service-container">
+                    <div class="service-row">
+                        <select class="service-select" onchange="updateServiceLogic()">
+                            <option value="">-- 請選擇服務 --</option>
+                            <option value="精緻洗車" data-time="60">精緻洗車 (1hr)</option>
+                            <option value="精緻打蠟" data-time="90">精緻打蠟 (1.5hr)</option>
+                            <option value="鍍膜維護" data-time="90">鍍膜維護 (1.5hr)</option>
+                            <option value="除油膜+玻璃鍍膜" data-time="40">除油膜+玻璃鍍膜 (40m)</option>
+                            <option value="深層美容" data-time="180">深層美容 (3hr)</option>
+                            <option value="經典鍍膜" data-time="240">經典鍍膜 (4hr)</option>
+                            <option value="精緻鍍膜" data-time="540">精緻鍍膜 (1天)</option>
+                            <option value="臭氧除臭" data-time="20">臭氧除臭 (20m)</option>
+                            <option value="引擎室清洗" data-time="30">引擎室清洗 (30m)</option>
+                            <option value="客製化服務" data-time="60">客製化服務 (另計)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="btn btn-outline" style="font-size:12px; padding:8px; width:auto; border-style:dashed;" onclick="addServiceRow()">➕ 新增服務項目</button>
+                
+                <div style="margin-top: 15px; padding: 10px; background: #111; border-radius: 4px;">
+                    <p style="margin:0; font-size: 14px; color: var(--gold);">預估總工時：<span id="total-time-text" style="color:var(--red); font-weight:bold; font-size:16px;">0 分鐘</span></p>
+                    <p style="margin:5px 0 0 0; font-size: 11px; color: #888;">選擇日期前，請先確認您的服務項目以利系統安排空檔。</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>3. DATE & TIME</h2>
                 <div class="cal-nav"><button onclick="changeMonth(-1)">❮</button><span id="cal-month-title"></span><button onclick="changeMonth(1)">❯</button></div>
                 <div class="calendar-grid"><div class="cal-header">日</div><div class="cal-header">一</div><div class="cal-header">二</div><div class="cal-header">三</div><div class="cal-header">四</div><div class="cal-header">五</div><div class="cal-header">六</div></div>
                 <div id="cal-body" class="calendar-grid" style="margin-top: 5px;"></div>
 
                 <div id="time-selector" class="hidden">
-                    <p style="margin-top:20px; font-size:14px; color:var(--gold);">選擇具體時段 <span style="color:#888; font-size:12px;">(反灰代表已被預約)</span></p>
+                    <p style="margin-top:20px; font-size:14px; color:var(--gold);">智慧空檔搜尋結果 <span style="color:#888; font-size:12px;">(最多選3個)</span></p>
                     <div id="time-slots-body" class="time-slot-container"></div>
                 </div>
                 <div style="margin-top: 15px; padding: 10px; background: #111; border-radius: 4px; font-size: 13px;">
-                    已選時段 (最多3個)：<br><span id="selected-dates-text" style="color: var(--red); font-weight: bold;">尚未選擇</span>
+                    已選時段：<br><span id="selected-dates-text" style="color: var(--red); font-weight: bold;">尚未選擇</span>
                 </div>
-            </div>
-
-            <div class="card">
-                <h2>3. SERVICE</h2>
-                <button type="button" class="btn btn-outline" style="padding: 10px; font-size: 13px; margin-bottom: 15px;" onclick="document.getElementById('pricelist-modal').classList.remove('hidden')">📋 查看詳細價目表</button>
-                <select id="b-service">
-                    <option value="精緻洗車">精緻洗車</option><option value="精緻打蠟">精緻打蠟</option>
-                    <option value="鍍膜維護">鍍膜維護</option><option value="除油膜+玻璃鍍膜">除油膜+玻璃鍍膜</option>
-                    <option value="深層美容">深層美容</option><option value="經典鍍膜">經典鍍膜</option>
-                    <option value="精緻鍍膜">精緻鍍膜</option><option value="臭氧除臭">臭氧除臭</option>
-                    <option value="引擎室清洗">引擎室清洗</option><option value="客製化服務">客製化服務</option>
-                </select>
-                <button class="btn" onclick="goToStep2()">下一步：檢視報價</button>
+                
+                <button class="btn" onclick="goToStep2()" style="margin-top: 25px;">下一步：檢視報價</button>
             </div>
         </div>
 
@@ -142,6 +165,7 @@
                 <h2>CONFIRMATION</h2>
                 <div style="background: #111; padding: 15px; border-radius: 4px;">
                     <p>車牌：<span id="c-plate"></span></p>
+                    <p>總工時：<span id="c-duration" style="color:var(--gold);"></span></p>
                     <p>項目：<span id="c-service"></span></p>
                     <p>日期：<span id="c-dates" style="color:var(--gold);"></span></p>
                     <hr style="border-color: #333;">
@@ -172,9 +196,9 @@
 
     <script>
         // ==========================================
-        // 🚨 系統設定區 (請務必填寫)
+        // 🚨 系統設定區
         // ==========================================
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbw3hTufNidoA_tsuov1WIh5oxntR-lbWg13maU1Bnd4uYaDlyIA-zhRnRE_mCO8ybpAvA/exec'; 
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwpUW8duyquZbYKl8OgfGuIFGmuXLngWtvDTuaStAgWoWbWj1fZQ2IfEd7l3n0BTigjIw/exec'; 
         const LIFF_ID = '2008811649-QZq68T5c'; 
         const DEFAULT_IMG = 'https://via.placeholder.com/800x400/111111/d1c1a5?text=NO+IMAGE';
 
@@ -182,10 +206,16 @@
         let userCars = []; let carOptionsData = [];
         let newCarBase64 = ""; let currentUploadSlot = "";
         let cropper; 
-        let busyTimesFromGoogle = []; let selectedTimeSlots = [];   
+        
+        let calendarOverview = {}; // 儲存日曆每日忙碌分數
+        let selectedTimeSlots = [];   
         let currentCalYear = new Date().getFullYear();
         let currentCalMonth = new Date().getMonth();
-        let weatherData = {};
+        
+        // 多重服務邏輯變數
+        let currentTotalDuration = 0; 
+        let currentServicesArray = [];
+        let lastSelectedDate = "";
 
         function showToast(msg) {
             const t = document.getElementById('toast');
@@ -216,17 +246,10 @@
         function fetchUserData() {
             Promise.all([
                 fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "checkUser", userId: globalUserId }) }).then(r=>r.json()),
-                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "getBusyDates" }) }).then(r=>r.json()),
-                fetch('https://api.open-meteo.com/v1/forecast?latitude=25.03&longitude=121.56&daily=weathercode&timezone=Asia%2FTaipei').then(r=>r.json()).catch(()=>({}))
-            ]).then(([userRes, busyRes, weatherRes]) => {
+                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "getCalendarOverview" }) }).then(r=>r.json())
+            ]).then(([userRes, calRes]) => {
                 document.getElementById('loader').style.display = 'none';
-                if (busyRes.status === "success") busyTimesFromGoogle = busyRes.data;
-                if (weatherRes.daily) {
-                    weatherRes.daily.time.forEach((dateStr, idx) => {
-                        let code = weatherRes.daily.weathercode[idx];
-                        weatherData[dateStr] = (code <= 1) ? '☀️' : (code <= 3 ? '☁️' : '🌧️');
-                    });
-                }
+                if (calRes.status === "success") calendarOverview = calRes.data;
                 
                 carOptionsData = userRes.data.carOptions || [];
                 userCars = userRes.data.cars || [];
@@ -242,6 +265,80 @@
             });
         }
 
+        // ==========================================
+        // 多重服務邏輯 (防呆互斥與加總)
+        // ==========================================
+        function addServiceRow() {
+            const container = document.getElementById('service-container');
+            if (container.children.length >= 5) return showToast("最多選擇 5 項服務");
+            
+            const newRow = document.createElement('div');
+            newRow.className = "service-row";
+            // 複製第一個選單，並在後面加上刪除按鈕
+            newRow.innerHTML = container.children[0].innerHTML.replace('</select>', '</select><button class="btn-remove" onclick="removeServiceRow(this)">✕</button>');
+            newRow.querySelector('select').value = ""; // 清空值
+            container.appendChild(newRow);
+            updateServiceLogic();
+        }
+
+        function removeServiceRow(btn) {
+            btn.parentElement.remove();
+            updateServiceLogic();
+        }
+
+        function updateServiceLogic() {
+            const selects = document.querySelectorAll('.service-select');
+            let selectedValues = Array.from(selects).map(s => s.value).filter(v => v !== "");
+            let totalTime = 0;
+            let hasSpecialCoating = selectedValues.includes("精緻鍍膜");
+
+            selects.forEach(select => {
+                const options = select.options;
+                for (let opt of options) {
+                    if (opt.value === "") continue;
+                    opt.disabled = false;
+                    opt.text = opt.text.replace(" (已包含)", "");
+
+                    // 互斥防呆規則
+                    if (selectedValues.includes("深層美容") && (opt.value === "精緻打蠟" || opt.value === "精緻洗車")) {
+                        opt.disabled = true; opt.text += " (已包含)";
+                    }
+                    if (selectedValues.includes("精緻打蠟") && opt.value === "精緻洗車") {
+                        opt.disabled = true; opt.text += " (已包含)";
+                    }
+                    // 特殊處理：精緻鍍膜若被選擇，其他基本上不重要了，但可全選
+                }
+                
+                // 加總有選擇的項目
+                const selectedOpt = select.options[select.selectedIndex];
+                if (selectedOpt && selectedOpt.value !== "" && !selectedOpt.text.includes("(已包含)")) {
+                    totalTime += parseInt(selectedOpt.dataset.time || 0);
+                }
+            });
+
+            currentServicesArray = Array.from(new Set(selectedValues)); // 去除重複
+            currentTotalDuration = totalTime;
+
+            let displayTime = "0 分鐘";
+            if (hasSpecialCoating) { displayTime = "1天 (需留車)"; currentTotalDuration = 540; }
+            else if (totalTime > 0) {
+                let h = Math.floor(totalTime / 60);
+                let m = totalTime % 60;
+                displayTime = h > 0 ? (m > 0 ? `${h} 小時 ${m} 分鐘` : `${h} 小時`) : `${m} 分鐘`;
+            }
+
+            document.getElementById('total-time-text').innerText = displayTime;
+            
+            // 若改變工時且有選擇日期，重算空檔
+            if(lastSelectedDate) {
+                document.getElementById('time-slots-body').innerHTML = ""; // 清空舊的
+                selectedTimeSlots = []; // 清空已選時段
+                document.getElementById('selected-dates-text').innerHTML = "尚未選擇";
+                selectDate(lastSelectedDate);
+            }
+        }
+
+        // --- 內嵌新增車庫 --- (維持原樣)
         function toggleInlineNewCar(show) {
             if (show) {
                 populateBrandDropdown();
@@ -289,9 +386,7 @@
             const plate = document.getElementById('nc-plate').value.trim();
             let brand = document.getElementById('nc-brand').value; if(brand === 'other') brand = document.getElementById('nc-brand-other').value.trim();
             let model = document.getElementById('nc-model').value; if(model === 'other') model = document.getElementById('nc-model-other').value.trim();
-            
             if(!plate || !brand || !model) return alert('請填寫車牌、廠牌與型號！');
-            
             document.getElementById('loader').style.display = 'flex';
             const data = { lineName: globalLineName, plate: plate, brand: brand, model: model, carClass: document.getElementById('nc-class').value, imageBase64: newCarBase64 };
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "addCar", userId: globalUserId, carData: data }) })
@@ -301,6 +396,7 @@
             }).catch(() => { document.getElementById('loader').style.display = 'none'; alert('連線異常'); });
         }
 
+        // --- 照片裁切 ---
         function triggerUpload(slot) {
             currentUploadSlot = slot;
             document.getElementById('file-uploader').value = '';
@@ -327,7 +423,6 @@
             let canvas = cropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
             let base64 = canvas.toDataURL('image/jpeg', 0.8);
             cancelCrop();
-
             if (currentUploadSlot === 'new-main') {
                 newCarBase64 = base64;
                 document.getElementById('nc-photo').style.backgroundImage = `url('${base64}')`;
@@ -336,7 +431,6 @@
                 document.getElementById('p-' + currentUploadSlot).style.backgroundImage = `url('${base64}')`;
                 document.getElementById('p-' + currentUploadSlot).innerHTML = '';
                 showToast("背景上傳儲存中...");
-                
                 const plate = document.getElementById('b-plate').value;
                 fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "uploadPhoto", plate: plate, slot: currentUploadSlot, imageBase64: base64 }) })
                 .then(res => res.json()).then(res => {
@@ -369,6 +463,7 @@
             setPhoto('p-3', car.photo3, '+ 細節 3'); setPhoto('p-4', car.photo4, '+ 細節 4');
         }
 
+        // --- 智慧日曆與時段 ---
         function changeMonth(offset) {
             currentCalMonth += offset;
             if (currentCalMonth > 11) { currentCalMonth = 0; currentCalYear++; }
@@ -385,33 +480,54 @@
             const daysInMonth = new Date(year, month + 1, 0).getDate(); 
             let html = '';
             for (let i = 0; i < firstDay; i++) { html += `<div></div>`; }
+            
             for (let d = 1; d <= daysInMonth; d++) {
                 let cellDate = new Date(year, month, d);
                 let dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                let icon = weatherData[dateStr] ? `<div class="weather-icon">${weatherData[dateStr]}</div>` : '';
+                
                 let isPast = cellDate < now;
-                let cssClass = isPast ? 'past' : (icon ? 'has-weather' : '');
-                if(isPast) html += `<div class="cal-day ${cssClass}">${d}${icon}</div>`;
-                else html += `<div class="cal-day ${cssClass}" id="cal-day-${dateStr}" onclick="selectDate('${dateStr}')">${d}${icon}</div>`;
+                let cssClass = isPast ? 'past' : '';
+                
+                // 動態分析忙碌程度 (例如該天行程大於 480 分鐘視為忙碌變灰)
+                if (!isPast && calendarOverview[dateStr] >= 480) cssClass += ' busy';
+
+                if(isPast) html += `<div class="cal-day ${cssClass}">${d}</div>`;
+                else html += `<div class="cal-day ${cssClass}" id="cal-day-${dateStr}" onclick="selectDate('${dateStr}')">${d}</div>`;
             }
             calBody.innerHTML = html;
         }
 
         function selectDate(dateStr) {
+            if (currentTotalDuration === 0) return showToast("請先選擇服務項目，系統才能計算空檔！");
+            
+            lastSelectedDate = dateStr;
             document.querySelectorAll('.cal-day').forEach(el => el.classList.remove('active'));
             document.getElementById('cal-day-' + dateStr).classList.add('active');
-            const timeSlots = ["09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
-            let html = '';
-            timeSlots.forEach(time => {
-                let slotStart = new Date(`${dateStr}T${time}:00`).getTime();
-                let isBusy = busyTimesFromGoogle.some(event => slotStart >= event.start && slotStart < event.end);
-                let displayStr = `${dateStr} ${time}`;
-                let isSelected = selectedTimeSlots.includes(displayStr);
-                if(isBusy) html += `<div class="time-slot busy">客滿</div>`;
-                else html += `<div class="time-slot ${isSelected?'selected':''}" onclick="toggleTimeSlot('${displayStr}', this)">${time}</div>`;
-            });
-            document.getElementById('time-slots-body').innerHTML = html;
+
+            document.getElementById('time-slots-body').innerHTML = "<p style='color:white; grid-column: span 4; text-align:center;'>正在計算合適的空檔...</p>";
             document.getElementById('time-selector').classList.remove('hidden');
+
+            // 請求 GAS 依據總工時計算出「真正塞得下」的時段
+            fetch(GAS_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ action: "getSlots", date: dateStr, totalDuration: currentTotalDuration }) 
+            })
+            .then(res => res.json())
+            .then(res => {
+                let html = '';
+                if (!res.data || res.data.length === 0) {
+                    html = "<p style='color:var(--red); grid-column: span 4; text-align:center;'>抱歉，該日剩餘空檔不足以進行此項服務，請選擇其他日期。</p>";
+                } else {
+                    res.data.forEach(time => {
+                        let displayStr = `${dateStr} ${time}`;
+                        let isSelected = selectedTimeSlots.includes(displayStr);
+                        html += `<div class="time-slot ${isSelected?'selected':''}" onclick="toggleTimeSlot('${displayStr}', this)">${time}</div>`;
+                    });
+                }
+                document.getElementById('time-slots-body').innerHTML = html;
+            }).catch(err => {
+                document.getElementById('time-slots-body').innerHTML = "<p style='color:red;'>連線錯誤</p>";
+            });
         }
 
         function toggleTimeSlot(displayStr, el) {
@@ -419,25 +535,34 @@
                 selectedTimeSlots = selectedTimeSlots.filter(t => t !== displayStr);
                 el.classList.remove('selected');
             } else {
-                if (selectedTimeSlots.length >= 3) return showToast("最多選擇 3 個時段！");
+                if (selectedTimeSlots.length >= 3) return showToast("最多選擇 3 個志願時段！");
                 selectedTimeSlots.push(displayStr);
                 el.classList.add('selected');
             }
             selectedTimeSlots.sort();
-            document.getElementById('selected-dates-text').innerHTML = selectedTimeSlots.length > 0 ? selectedTimeSlots.join('<br>') : '尚未選擇';
+            document.getElementById('selected-dates-text').innerHTML = selectedTimeSlots.length > 0 ? '<br>' + selectedTimeSlots.join('<br>') : '尚未選擇';
         }
 
+        // --- 結帳與送出 ---
         function goToStep2() {
+            if(currentServicesArray.length === 0) return showToast("請至少選擇 1 項服務！");
             if(selectedTimeSlots.length === 0) return showToast("請至少選擇 1 個具體時段！");
+            
             document.getElementById('c-plate').innerText = document.getElementById('b-plate').value;
-            document.getElementById('c-service').innerText = document.getElementById('b-service').value;
-            // 修正：第一行也斷行，符合排版美學
+            document.getElementById('c-duration').innerText = document.getElementById('total-time-text').innerText;
+            document.getElementById('c-service').innerHTML = '<br>' + currentServicesArray.join('<br>');
             document.getElementById('c-dates').innerHTML = '<br>' + selectedTimeSlots.join('<br>');
+            
             document.getElementById('view-step1').classList.add('hidden');
             document.getElementById('view-step2').classList.remove('hidden');
             document.getElementById('c-price').innerText = "計算中...";
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "getQuote", plate: document.getElementById('b-plate').value, service: document.getElementById('b-service').value }) })
-            .then(res => res.json()).then(res => { document.getElementById('c-price').innerText = res.data; });
+            
+            // 詢問多重服務的總價格
+            fetch(GAS_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ action: "getQuote", plate: document.getElementById('b-plate').value, services: currentServicesArray }) 
+            })
+            .then(res => res.json()).then(res => { document.getElementById('c-price').innerText = res.data !== "需現場評估" ? "$" + res.data : "需現場評估"; });
         }
 
         function goBackStep1() {
@@ -447,11 +572,17 @@
 
         function submitFinalBooking() {
             document.getElementById('loader').style.display = 'flex';
-            const bData = { plate: document.getElementById('b-plate').value, service: document.getElementById('b-service').value, selectedDates: selectedTimeSlots, price: document.getElementById('c-price').innerText };
+            const bData = { 
+                plate: document.getElementById('b-plate').value, 
+                services: currentServicesArray, 
+                selectedDates: selectedTimeSlots, 
+                price: document.getElementById('c-price').innerText,
+                totalDuration: currentTotalDuration
+            };
+            
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "submitBooking", userId: globalUserId, bookingData: bData }) })
             .then(() => { 
-                alert('預約送出成功！'); 
-                // 預約完成後，自動關閉 LIFF 視窗回到 LINE 聊天室
+                alert('預約送出成功！店家將盡快與您聯繫。'); 
                 liff.closeWindow(); 
             });
         }
