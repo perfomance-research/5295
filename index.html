@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>5295 STUDIO | 頂級汽車美容</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
@@ -13,25 +13,24 @@
         :root { --bg: #050505; --gold: #d1c1a5; --red: #d92128; --text: #f0f0f0; --box: rgba(209, 193, 165, 0.05); }
         body { margin: 0; background-color: var(--bg); color: var(--text); font-family: 'Noto Sans TC', sans-serif; overflow-x: hidden; padding-bottom: 80px;}
         header { text-align: center; padding: 15px 0; border-bottom: 1px solid rgba(209, 193, 165, 0.3); background: #0a0a0a; }
-        .logo-text { font-family: 'Orbitron', sans-serif; font-size: 28px; font-weight: 700; letter-spacing: 4px; color: var(--gold); margin: 0; }
-        .logo-text span { color: var(--red); }
+        .logo-img { max-width: 180px; height: auto; display: block; margin: 0 auto; }
         .container { padding: 15px; max-width: 600px; margin: 0 auto; }
         .card { background-color: var(--box); border: 1px solid var(--gold); border-radius: 8px; padding: 20px; margin-bottom: 20px; position: relative; }
-        h2 { font-family: 'Orbitron', sans-serif; color: var(--gold); border-bottom: 1px dashed var(--gold); padding-bottom: 10px; margin-top: 0; font-size: 18px;}
+        h2 { color: var(--gold); border-bottom: 1px dashed var(--gold); padding-bottom: 10px; margin-top: 0; font-size: 18px;}
         label { display: block; margin-top: 15px; font-size: 13px; color: #aaa; }
         select, input { width: 100%; padding: 12px; margin-top: 5px; background-color: rgba(0,0,0,0.5); border: 1px solid var(--gold); color: var(--gold); border-radius: 4px; box-sizing: border-box; font-size: 14px;}
-        .btn { display: block; width: 100%; padding: 15px; margin-top: 20px; background-color: var(--gold); color: #000; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; font-family: 'Orbitron', sans-serif; cursor: pointer; transition: 0.3s; }
+        .btn { display: block; width: 100%; padding: 15px; margin-top: 20px; background-color: var(--gold); color: #000; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; }
         .btn-outline { background: transparent; border: 1px solid var(--gold); color: var(--gold); }
         .hidden { display: none !important; }
         
-        .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-family: 'Orbitron'; font-size: 16px; color: var(--gold);}
-        .cal-nav button { background: none; border: 1px solid var(--gold); color: var(--gold); padding: 5px 15px; border-radius: 4px; border: 1px solid var(--gold);}
+        .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 16px; color: var(--gold);}
+        .cal-nav button { background: none; border: 1px solid var(--gold); color: var(--gold); padding: 5px 15px; border-radius: 4px;}
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
         .cal-header { font-size: 12px; color: #aaa; padding-bottom: 5px; border-bottom: 1px solid #333;}
         .cal-day { background: #111; border: 1px solid #333; border-radius: 4px; padding: 8px 2px; font-size: 12px; height: 50px; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: 0.2s;}
         .cal-day.active { border: 2px solid var(--red) !important; background: rgba(217, 33, 40, 0.15);}
         .cal-day.past { opacity: 0.3; border-color: #222 !important; background: #000; }
-        .cal-day.busy { opacity: 0.5; background: #331111; border-color: var(--red); color: #aaa; } /* 滿載日樣式 */
+        .cal-day.busy { opacity: 0.5; background: #331111; border-color: var(--red); color: #aaa; }
         
         .time-slot-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; border-top: 1px dashed #333; padding-top: 15px;}
         .time-slot { background: #1a1a1a; border: 1px solid #444; color: #ccc; padding: 10px 0; text-align: center; border-radius: 4px; font-size: 13px;}
@@ -40,17 +39,15 @@
         .photo-box { height: 100px; background: #111; border: 1px dashed var(--gold); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--gold); background-size: cover; background-position: center; border-radius: 4px; position: relative;}
         .photo-main { grid-column: span 2; height: 180px; }
         
-        /* 多重服務列樣式 */
-        .service-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; animation: fadeIn 0.3s ease; }
+        .service-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
         .service-row select { margin-top: 0; flex: 1; }
         .btn-remove { background: transparent; border: 1px solid var(--red); color: var(--red); padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,5,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; color: var(--gold); font-family: 'Orbitron'; }
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,5,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; color: var(--gold); }
         #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(217, 33, 40, 0.9); color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 14px; z-index: 10000; opacity: 0; transition: 0.3s; pointer-events: none; font-weight: bold;}
         #toast.show { opacity: 1; }
 
-        #crop-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center;}
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center;}
         #crop-container { width: 100%; height: 70vh; background: #000; display: flex; justify-content: center; align-items: center; }
         #crop-image { display: block; max-width: 100%; max-height: 100%; }
         .modal-controls { padding: 15px; display: flex; justify-content: space-between; background: #000; border-top: 1px solid #333; width: 100%; box-sizing: border-box;}
@@ -63,34 +60,37 @@
 </head>
 <body>
 
-    <div id="loader"><h1 class="logo-text">52<span>9</span>5</h1><p>SYSTEM LOADING...</p></div>
+    <div id="loader">
+        <img src="./logo.png" alt="5295 STUDIO" style="width: 150px; margin-bottom: 20px;">
+        <p>系統載入中...</p>
+    </div>
     <div id="toast">處理中...</div>
     
-    <header><h1 class="logo-text">52<span>9</span>5 STUDIO</h1></header>
+    <header><img src="./logo.png" alt="5295 STUDIO" class="logo-img"></header>
 
     <div class="container">
         <div id="view-step1" class="hidden">
             <div class="card">
-                <h2>1. MY VEHICLE</h2>
+                <h2>1. 我的愛車</h2>
                 <div id="select-car-section">
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <select id="b-plate" onchange="renderCarPhotos()" style="flex: 1;"></select>
-                        <button class="btn btn-outline" style="width: auto; margin-top: 5px; padding: 0 15px; font-size: 12px; white-space: nowrap;" onclick="toggleInlineNewCar(true)">+ 新增</button>
+                        <button class="btn btn-outline" style="width: auto; margin-top: 5px; padding: 0 15px; font-size: 12px; white-space: nowrap;" onclick="toggleInlineNewCar(true)">+ 新增愛車</button>
                     </div>
                     <div style="margin-top: 15px;">
-                        <div class="photo-box photo-main" id="p-main" onclick="triggerUpload('main')">+ 主視覺</div>
+                        <div class="photo-box photo-main" id="p-main" onclick="triggerUpload('main')">+ 愛車主視覺</div>
                         <button class="btn btn-outline" style="padding: 8px; font-size: 12px; margin-top: 10px;" onclick="document.getElementById('extra-photos').classList.toggle('hidden')">➕ 展開細節照片 (選填)</button>
                         <div id="extra-photos" class="photo-grid hidden">
-                            <div class="photo-box" id="p-1" onclick="triggerUpload('1')">+ 細節 1</div>
-                            <div class="photo-box" id="p-2" onclick="triggerUpload('2')">+ 細節 2</div>
-                            <div class="photo-box" id="p-3" onclick="triggerUpload('3')">+ 細節 3</div>
-                            <div class="photo-box" id="p-4" onclick="triggerUpload('4')">+ 細節 4</div>
+                            <div class="photo-box" id="p-1" onclick="triggerUpload('1')">+ 車頭細節</div>
+                            <div class="photo-box" id="p-2" onclick="triggerUpload('2')">+ 側邊細節</div>
+                            <div class="photo-box" id="p-3" onclick="triggerUpload('3')">+ 車尾細節</div>
+                            <div class="photo-box" id="p-4" onclick="triggerUpload('4')">+ 內裝細節</div>
                         </div>
                     </div>
                 </div>
 
                 <div id="inline-newcar-form" class="hidden" style="margin-top: 15px; padding: 15px; border: 1px dashed var(--gold); border-radius: 8px; background: rgba(0,0,0,0.3);">
-                    <h3 style="margin-top:0; color: var(--gold); font-size: 16px; font-family:'Orbitron';">CREATE GARAGE</h3>
+                    <h3 style="margin-top:0; color: var(--gold); font-size: 16px;">建立專屬車庫</h3>
                     <div class="photo-box photo-main" id="nc-photo" onclick="triggerUpload('new-main')">+ 點擊上傳主視覺 (選填)</div>
                     <label>車牌號碼 <span style="color:var(--red);">*</span></label>
                     <input type="text" id="nc-plate" placeholder="例如: ABC-5295" style="text-transform: uppercase;">
@@ -100,11 +100,7 @@
                     <label>型號 <span style="color:var(--red);">*</span></label>
                     <select id="nc-model" onchange="onModelChange()"><option value="">請先選擇廠牌</option></select>
                     <input type="text" id="nc-model-other" class="hidden" placeholder="請手動輸入型號">
-                    <label>車輛級距</label>
-                    <select id="nc-class">
-                        <option value="轎車">轎車</option><option value="休旅車、旅行車">休旅車、旅行車</option>
-                        <option value="大型休旅車">大型休旅車</option><option value="商務車">商務車</option>
-                    </select>
+                    
                     <div style="display:flex; gap:10px; margin-top: 20px;">
                         <button class="btn btn-outline" style="margin-top:0;" onclick="toggleInlineNewCar(false)" id="btn-cancel-nc">取消</button>
                         <button class="btn" style="margin-top:0;" onclick="submitNewCar()">確認新增</button>
@@ -113,23 +109,23 @@
             </div>
 
             <div class="card">
-                <h2>2. SERVICES <span style="font-size: 10px; color:#888;">(最多 5 項)</span></h2>
+                <h2>2. 服務項目 <span style="font-size: 10px; color:#888;">(最多選 5 項)</span></h2>
                 <button type="button" class="btn btn-outline" style="padding: 10px; font-size: 13px; margin-bottom: 15px; margin-top: 0;" onclick="document.getElementById('pricelist-modal').classList.remove('hidden')">📋 查看詳細價目表</button>
                 
                 <div id="service-container">
                     <div class="service-row">
                         <select class="service-select" onchange="updateServiceLogic()">
                             <option value="">-- 請選擇服務 --</option>
-                            <option value="精緻洗車" data-time="60">精緻洗車 (1hr)</option>
-                            <option value="精緻打蠟" data-time="90">精緻打蠟 (1.5hr)</option>
-                            <option value="鍍膜維護" data-time="90">鍍膜維護 (1.5hr)</option>
-                            <option value="除油膜+玻璃鍍膜" data-time="40">除油膜+玻璃鍍膜 (40m)</option>
-                            <option value="深層美容" data-time="180">深層美容 (3hr)</option>
-                            <option value="經典鍍膜" data-time="240">經典鍍膜 (4hr)</option>
-                            <option value="精緻鍍膜" data-time="540">精緻鍍膜 (1天)</option>
-                            <option value="臭氧除臭" data-time="20">臭氧除臭 (20m)</option>
-                            <option value="引擎室清洗" data-time="30">引擎室清洗 (30m)</option>
-                            <option value="客製化服務" data-time="60">客製化服務 (另計)</option>
+                            <option value="精緻洗車" data-time="60">精緻洗車 (1小時)</option>
+                            <option value="精緻打蠟" data-time="90">精緻打蠟 (1.5小時)</option>
+                            <option value="鍍膜維護" data-time="90">鍍膜維護 (1.5小時)</option>
+                            <option value="除油膜+玻璃鍍膜" data-time="40">除油膜+玻璃鍍膜 (40分鐘)</option>
+                            <option value="深層美容" data-time="180">深層美容 (3小時)</option>
+                            <option value="經典鍍膜" data-time="240">經典鍍膜 (4小時)</option>
+                            <option value="精緻鍍膜" data-time="540">精緻鍍膜 (需留車)</option>
+                            <option value="臭氧除臭" data-time="20">臭氧除臭 (20分鐘)</option>
+                            <option value="引擎室清洗" data-time="30">引擎室清洗 (30分鐘)</option>
+                            <option value="客製化服務" data-time="60">客製化服務 (現場評估)</option>
                         </select>
                     </div>
                 </div>
@@ -138,12 +134,12 @@
                 
                 <div style="margin-top: 15px; padding: 10px; background: #111; border-radius: 4px;">
                     <p style="margin:0; font-size: 14px; color: var(--gold);">預估總工時：<span id="total-time-text" style="color:var(--red); font-weight:bold; font-size:16px;">0 分鐘</span></p>
-                    <p style="margin:5px 0 0 0; font-size: 11px; color: #888;">選擇日期前，請先確認您的服務項目以利系統安排空檔。</p>
+                    <p style="margin:5px 0 0 0; font-size: 11px; color: #888;">系統將依照總工時為您安排合適的空檔。</p>
                 </div>
             </div>
 
             <div class="card">
-                <h2>3. DATE & TIME</h2>
+                <h2>3. 日期與時間</h2>
                 <div class="cal-nav"><button onclick="changeMonth(-1)">❮</button><span id="cal-month-title"></span><button onclick="changeMonth(1)">❯</button></div>
                 <div class="calendar-grid"><div class="cal-header">日</div><div class="cal-header">一</div><div class="cal-header">二</div><div class="cal-header">三</div><div class="cal-header">四</div><div class="cal-header">五</div><div class="cal-header">六</div></div>
                 <div id="cal-body" class="calendar-grid" style="margin-top: 5px;"></div>
@@ -162,10 +158,10 @@
 
         <div id="view-step2" class="hidden">
             <div class="card">
-                <h2>CONFIRMATION</h2>
+                <h2>確認預約資訊</h2>
                 <div style="background: #111; padding: 15px; border-radius: 4px;">
                     <p>車牌：<span id="c-plate"></span></p>
-                    <p>總工時：<span id="c-duration" style="color:var(--gold);"></span></p>
+                    <p>工時：<span id="c-duration" style="color:var(--gold);"></span></p>
                     <p>項目：<span id="c-service"></span></p>
                     <p>日期：<span id="c-dates" style="color:var(--gold);"></span></p>
                     <hr style="border-color: #333;">
@@ -198,7 +194,7 @@
         // ==========================================
         // 🚨 系統設定區
         // ==========================================
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwpUW8duyquZbYKl8OgfGuIFGmuXLngWtvDTuaStAgWoWbWj1fZQ2IfEd7l3n0BTigjIw/exec'; 
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbw8Z-jqgAh4SKg2zKzDWZcDAVsx9BXuX9flhWM8J69kibwuueJ23MBn2p8Z94LgjZH6eg/exec'; 
         const LIFF_ID = '2008811649-QZq68T5c'; 
         const DEFAULT_IMG = 'https://via.placeholder.com/800x400/111111/d1c1a5?text=NO+IMAGE';
 
@@ -207,15 +203,18 @@
         let newCarBase64 = ""; let currentUploadSlot = "";
         let cropper; 
         
-        let calendarOverview = {}; // 儲存日曆每日忙碌分數
+        let calendarOverview = {}; 
         let selectedTimeSlots = [];   
         let currentCalYear = new Date().getFullYear();
         let currentCalMonth = new Date().getMonth();
         
-        // 多重服務邏輯變數
         let currentTotalDuration = 0; 
         let currentServicesArray = [];
         let lastSelectedDate = "";
+
+        // 定義階層規則
+        const washLevels = {"精緻洗車": 1, "精緻打蠟": 2, "深層美容": 3};
+        const coatLevels = {"鍍膜維護": 1, "除油膜+玻璃鍍膜": 2, "經典鍍膜": 3, "精緻鍍膜": 4};
 
         function showToast(msg) {
             const t = document.getElementById('toast');
@@ -230,7 +229,7 @@
                     globalUserId = p.userId; globalLineName = p.displayName;
                     fetchUserData();
                 });
-            }).catch(err => { alert('LIFF 初始化失敗'); });
+            }).catch(err => { alert('系統載入失敗，請確認在 LINE 中開啟'); });
             
             const plateInput = document.getElementById('nc-plate');
             if (plateInput) {
@@ -261,22 +260,20 @@
                 } else { initBookingForm(); }
                 renderCalendar(currentCalYear, currentCalMonth);
             }).catch(err => {
-                document.getElementById('loader').style.display = 'none'; alert('資料載入異常');
+                document.getElementById('loader').style.display = 'none'; alert('資料連線異常');
             });
         }
 
         // ==========================================
-        // 多重服務邏輯 (防呆互斥與加總)
+        // 嚴謹的服務階層排除邏輯
         // ==========================================
         function addServiceRow() {
             const container = document.getElementById('service-container');
             if (container.children.length >= 5) return showToast("最多選擇 5 項服務");
-            
             const newRow = document.createElement('div');
             newRow.className = "service-row";
-            // 複製第一個選單，並在後面加上刪除按鈕
             newRow.innerHTML = container.children[0].innerHTML.replace('</select>', '</select><button class="btn-remove" onclick="removeServiceRow(this)">✕</button>');
-            newRow.querySelector('select').value = ""; // 清空值
+            newRow.querySelector('select').value = ""; 
             container.appendChild(newRow);
             updateServiceLogic();
         }
@@ -288,35 +285,54 @@
 
         function updateServiceLogic() {
             const selects = document.querySelectorAll('.service-select');
-            let selectedValues = Array.from(selects).map(s => s.value).filter(v => v !== "");
-            let totalTime = 0;
-            let hasSpecialCoating = selectedValues.includes("精緻鍍膜");
+            let selectedValues = Array.from(selects).map(s => s.value);
 
+            // 1. 找出目前已選的最高階層
+            let maxWash = 0; let maxCoat = 0;
+            selectedValues.forEach(v => {
+                if (washLevels[v] > maxWash) maxWash = washLevels[v];
+                if (coatLevels[v] > maxCoat) maxCoat = coatLevels[v];
+            });
+
+            let totalTime = 0;
+            let hasSpecialCoating = false;
+
+            // 2. 應用規則：自動清空小於最高階層的選項，並標示 (已包含)
             selects.forEach(select => {
+                // 自動清除被覆蓋的較低階服務
+                if (select.value && washLevels[select.value] && washLevels[select.value] < maxWash) {
+                    select.value = ""; showToast("已自動移除較低階的洗車服務");
+                }
+                if (select.value && coatLevels[select.value] && coatLevels[select.value] < maxCoat) {
+                    select.value = ""; showToast("已自動移除較低階的鍍膜服務");
+                }
+
+                if (select.value === "精緻鍍膜") hasSpecialCoating = true;
+
                 const options = select.options;
                 for (let opt of options) {
                     if (opt.value === "") continue;
                     opt.disabled = false;
                     opt.text = opt.text.replace(" (已包含)", "");
 
-                    // 互斥防呆規則
-                    if (selectedValues.includes("深層美容") && (opt.value === "精緻打蠟" || opt.value === "精緻洗車")) {
+                    // 禁用低於最高階層的選項
+                    if (washLevels[opt.value] && washLevels[opt.value] < maxWash) {
                         opt.disabled = true; opt.text += " (已包含)";
                     }
-                    if (selectedValues.includes("精緻打蠟") && opt.value === "精緻洗車") {
+                    if (coatLevels[opt.value] && coatLevels[opt.value] < maxCoat) {
                         opt.disabled = true; opt.text += " (已包含)";
                     }
-                    // 特殊處理：精緻鍍膜若被選擇，其他基本上不重要了，但可全選
                 }
                 
-                // 加總有選擇的項目
+                // 加總有效工時
                 const selectedOpt = select.options[select.selectedIndex];
                 if (selectedOpt && selectedOpt.value !== "" && !selectedOpt.text.includes("(已包含)")) {
                     totalTime += parseInt(selectedOpt.dataset.time || 0);
                 }
             });
 
-            currentServicesArray = Array.from(new Set(selectedValues)); // 去除重複
+            // 更新結果
+            currentServicesArray = Array.from(new Set(Array.from(selects).map(s => s.value).filter(v => v !== "")));
             currentTotalDuration = totalTime;
 
             let displayTime = "0 分鐘";
@@ -329,16 +345,16 @@
 
             document.getElementById('total-time-text').innerText = displayTime;
             
-            // 若改變工時且有選擇日期，重算空檔
+            // 重新計算日曆空檔
             if(lastSelectedDate) {
-                document.getElementById('time-slots-body').innerHTML = ""; // 清空舊的
-                selectedTimeSlots = []; // 清空已選時段
+                document.getElementById('time-slots-body').innerHTML = "";
+                selectedTimeSlots = [];
                 document.getElementById('selected-dates-text').innerHTML = "尚未選擇";
                 selectDate(lastSelectedDate);
             }
         }
 
-        // --- 內嵌新增車庫 --- (維持原樣)
+        // --- 內嵌新增車庫 --- 
         function toggleInlineNewCar(show) {
             if (show) {
                 populateBrandDropdown();
@@ -370,7 +386,7 @@
                 document.getElementById('nc-model-other').classList.add('hidden');
                 let models = carOptionsData.filter(o => o.brand === brand);
                 let html = '<option value="">請選擇型號</option>';
-                models.forEach(m => html += `<option value="${m.model}" data-class="${m.carClass}">${m.model}</option>`);
+                models.forEach(m => html += `<option value="${m.model}">${m.model}</option>`);
                 html += '<option value="other">其他 (自行輸入)</option>';
                 modelSel.innerHTML = html;
             }
@@ -379,16 +395,18 @@
         function onModelChange() {
             let modelSel = document.getElementById('nc-model');
             if (modelSel.value === 'other') { document.getElementById('nc-model-other').classList.remove('hidden'); } 
-            else { document.getElementById('nc-model-other').classList.add('hidden'); let opt = modelSel.options[modelSel.selectedIndex]; if(opt.dataset.class) document.getElementById('nc-class').value = opt.dataset.class; }
+            else { document.getElementById('nc-model-other').classList.add('hidden'); }
         }
 
         function submitNewCar() {
             const plate = document.getElementById('nc-plate').value.trim();
             let brand = document.getElementById('nc-brand').value; if(brand === 'other') brand = document.getElementById('nc-brand-other').value.trim();
             let model = document.getElementById('nc-model').value; if(model === 'other') model = document.getElementById('nc-model-other').value.trim();
-            if(!plate || !brand || !model) return alert('請填寫車牌、廠牌與型號！');
+            if(!plate || !brand || !model) return alert('請完整填寫車牌、廠牌與型號！');
             document.getElementById('loader').style.display = 'flex';
-            const data = { lineName: globalLineName, plate: plate, brand: brand, model: model, carClass: document.getElementById('nc-class').value, imageBase64: newCarBase64 };
+            
+            // 移除了 carClass 的傳遞
+            const data = { lineName: globalLineName, plate: plate, brand: brand, model: model, imageBase64: newCarBase64 };
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "addCar", userId: globalUserId, carData: data }) })
             .then(res => res.json()).then(res => {
                 if(res.status === 'success') location.reload(); 
@@ -430,7 +448,7 @@
             } else {
                 document.getElementById('p-' + currentUploadSlot).style.backgroundImage = `url('${base64}')`;
                 document.getElementById('p-' + currentUploadSlot).innerHTML = '';
-                showToast("背景上傳儲存中...");
+                showToast("雲端上傳中...");
                 const plate = document.getElementById('b-plate').value;
                 fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "uploadPhoto", plate: plate, slot: currentUploadSlot, imageBase64: base64 }) })
                 .then(res => res.json()).then(res => {
@@ -444,7 +462,7 @@
         function initBookingForm() {
             const select = document.getElementById('b-plate');
             select.innerHTML = '';
-            userCars.forEach(car => { select.innerHTML += `<option value="${car.plate}">${car.plate}</option>`; });
+            userCars.forEach(car => { select.innerHTML += `<option value="${car.plate}">${car.plate} (${car.brand})</option>`; });
             renderCarPhotos();
             document.getElementById('select-car-section').classList.remove('hidden');
             document.getElementById('btn-cancel-nc').style.display = 'block';
@@ -458,9 +476,9 @@
                 if (url) { el.style.backgroundImage = `url('${url}')`; el.innerHTML = ''; } 
                 else { el.style.backgroundImage = id === 'p-main' ? `url('${DEFAULT_IMG}')` : 'none'; el.innerHTML = id === 'p-main' ? '' : text; }
             };
-            setPhoto('p-main', car.photoMain, '+ 主視覺');
-            setPhoto('p-1', car.photo1, '+ 細節 1'); setPhoto('p-2', car.photo2, '+ 細節 2');
-            setPhoto('p-3', car.photo3, '+ 細節 3'); setPhoto('p-4', car.photo4, '+ 細節 4');
+            setPhoto('p-main', car.photoMain, '+ 愛車主視覺');
+            setPhoto('p-1', car.photo1, '+ 車頭細節'); setPhoto('p-2', car.photo2, '+ 側邊細節');
+            setPhoto('p-3', car.photo3, '+ 車尾細節'); setPhoto('p-4', car.photo4, '+ 內裝細節');
         }
 
         // --- 智慧日曆與時段 ---
@@ -488,7 +506,6 @@
                 let isPast = cellDate < now;
                 let cssClass = isPast ? 'past' : '';
                 
-                // 動態分析忙碌程度 (例如該天行程大於 480 分鐘視為忙碌變灰)
                 if (!isPast && calendarOverview[dateStr] >= 480) cssClass += ' busy';
 
                 if(isPast) html += `<div class="cal-day ${cssClass}">${d}</div>`;
@@ -504,10 +521,9 @@
             document.querySelectorAll('.cal-day').forEach(el => el.classList.remove('active'));
             document.getElementById('cal-day-' + dateStr).classList.add('active');
 
-            document.getElementById('time-slots-body').innerHTML = "<p style='color:white; grid-column: span 4; text-align:center;'>正在計算合適的空檔...</p>";
+            document.getElementById('time-slots-body').innerHTML = "<p style='color:white; grid-column: span 4; text-align:center;'>正在運算最佳時段...</p>";
             document.getElementById('time-selector').classList.remove('hidden');
 
-            // 請求 GAS 依據總工時計算出「真正塞得下」的時段
             fetch(GAS_URL, { 
                 method: 'POST', 
                 body: JSON.stringify({ action: "getSlots", date: dateStr, totalDuration: currentTotalDuration }) 
@@ -557,12 +573,11 @@
             document.getElementById('view-step2').classList.remove('hidden');
             document.getElementById('c-price').innerText = "計算中...";
             
-            // 詢問多重服務的總價格
             fetch(GAS_URL, { 
                 method: 'POST', 
                 body: JSON.stringify({ action: "getQuote", plate: document.getElementById('b-plate').value, services: currentServicesArray }) 
             })
-            .then(res => res.json()).then(res => { document.getElementById('c-price').innerText = res.data !== "需現場評估" ? "$" + res.data : "需現場評估"; });
+            .then(res => res.json()).then(res => { document.getElementById('c-price').innerText = res.data !== "需現場評估" ? "$" + res.data : "現場評估報價"; });
         }
 
         function goBackStep1() {
@@ -582,7 +597,7 @@
             
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "submitBooking", userId: globalUserId, bookingData: bData }) })
             .then(() => { 
-                alert('預約送出成功！店家將盡快與您聯繫。'); 
+                alert('預約送出成功！店家將盡快為您確認。'); 
                 liff.closeWindow(); 
             });
         }
