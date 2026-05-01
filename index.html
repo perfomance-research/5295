@@ -93,7 +93,7 @@
                     </div>
                     <div style="margin-top: 15px;">
                         <div class="photo-box photo-main" id="p-main" onclick="triggerUpload('main')">+ 愛車主視覺</div>
-                        <button class="btn btn-outline" style="padding: 8px; font-size: 12px; margin-top: 10px;" onclick="document.getElementById('extra-photos').classList.toggle('hidden')">➕ 展開細節照片 (選填)</button>
+                        <button id="toggle-photos-btn" class="btn btn-outline" style="padding: 8px; font-size: 12px; margin-top: 10px;" onclick="toggleExtraPhotos()">➕ 展開細節照片 (選填)</button>
                         <div id="extra-photos" class="photo-grid hidden">
                             <div class="photo-box" id="p-1" onclick="triggerUpload('1')">+ 車頭細節</div>
                             <div class="photo-box" id="p-2" onclick="triggerUpload('2')">+ 側邊細節</div>
@@ -161,14 +161,14 @@
                 <div id="cal-body" class="calendar-grid" style="margin-top: 5px;"></div>
 
                 <div id="time-selector" class="hidden">
-                    <p style="margin-top:20px; font-size:14px; color:var(--gold);">空檔搜尋結果 <span style="color:#888; font-size:12px;">(請務必選滿 3 個時段)</span></p>
+                    <p style="margin-top:20px; font-size:14px; color:var(--gold);">智慧空檔搜尋結果 <span style="color:#888; font-size:12px;">(請務必選滿 3 個時段)</span></p>
                     <div id="time-slots-body" class="time-slot-container"></div>
                 </div>
                 <div style="margin-top: 15px; padding: 10px; background: #111; border-radius: 4px; font-size: 13px;">
                     已選時段：<br><span id="selected-dates-text" style="color: var(--red); font-weight: bold;">尚未選擇</span>
                 </div>
                 
-                <button class="btn" onclick="goToStep2()" style="margin-top: 25px;">確認預約資訊</button>
+                <button class="btn" onclick="goToStep2()" style="margin-top: 25px;">下一步：確認預約資訊</button>
             </div>
         </div>
 
@@ -210,7 +210,7 @@
         // ==========================================
         // 🚨 系統設定區
         // ==========================================
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxdoHjRzes_NIZAy6plCLPkYFSwWuJCFMI0itjywmZaqCtBzhduTc9QRLc6MN_BKWh4Qg/exec'; 
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxqkPQEBTg-fE1IcQYQ1KGAApmygebaPiPKvNjTi6ofcvHQJN3bmwdQsvFefaFMwm2Fyg/exec'; 
         const LIFF_ID = '2008811649-QZq68T5c'; 
         const DEFAULT_IMG = 'https://via.placeholder.com/800x400/111111/d1c1a5?text=NO+IMAGE';
 
@@ -241,6 +241,17 @@
             document.getElementById('custom-alert-title').innerText = title;
             document.getElementById('custom-alert-msg').innerText = msg;
             document.getElementById('custom-alert').classList.remove('hidden');
+        }
+        
+        function toggleExtraPhotos() {
+            const el = document.getElementById('extra-photos');
+            const btn = document.getElementById('toggle-photos-btn');
+            el.classList.toggle('hidden');
+            if (el.classList.contains('hidden')) {
+                btn.innerText = "➕ 展開細節照片 (選填)";
+            } else {
+                btn.innerText = "➖ 收起細節照片";
+            }
         }
 
         window.onload = function() {
@@ -304,7 +315,7 @@
         }
 
         // ==========================================
-        // 動態服務防呆邏輯 (包含不可重複選擇)
+        // 動態服務防呆邏輯 (包含不可重複選擇與修改文字)
         // ==========================================
         function updateServiceLogic() {
             const selects = Array.from(document.querySelectorAll('.service-select'));
@@ -320,12 +331,11 @@
             let hasSpecialCoating = false;
 
             selects.forEach((select, index) => {
-                // 1. 自動清除被覆蓋的服務
                 if (select.value && washLevels[select.value] && washLevels[select.value] < maxWash) {
-                    select.value = ""; showToast("已自動移除較低階的服務");
+                    select.value = ""; showToast("已為您整合重複的基礎項目");
                 }
                 if (select.value && coatLevels[select.value] && coatLevels[select.value] < maxCoat) {
-                    select.value = ""; showToast("已自動移除較低階的服務");
+                    select.value = ""; showToast("已為您整合重複的基礎項目");
                 }
 
                 if (select.value === "精緻鍍膜") hasSpecialCoating = true;
@@ -336,15 +346,12 @@
                     opt.disabled = false;
                     opt.text = opt.text.replace(" (已包含)", "").replace(" (已選)", "");
 
-                    // 2. 檢查是否在「其他下拉選單」已經被選過了
                     let isSelectedElsewhere = selects.some((otherSelect, otherIndex) => {
                         return index !== otherIndex && otherSelect.value === opt.value && otherSelect.value !== "";
                     });
 
-                    // 3. 執行停用邏輯
                     if (isSelectedElsewhere) {
-                        opt.disabled = true;
-                        opt.text += " (已選)";
+                        opt.disabled = true; opt.text += " (已選)";
                     } else if (washLevels[opt.value] && washLevels[opt.value] < maxWash) {
                         opt.disabled = true; opt.text += " (已包含)";
                     } else if (coatLevels[opt.value] && coatLevels[opt.value] < maxCoat) {
@@ -352,7 +359,6 @@
                     }
                 }
                 
-                // 4. 加總工時
                 const selectedOpt = select.options[select.selectedIndex];
                 if (selectedOpt && selectedOpt.value !== "" && !selectedOpt.text.includes("(已包含)") && !selectedOpt.text.includes("(已選)")) {
                     totalTime += parseInt(selectedOpt.dataset.time || 0);
@@ -392,7 +398,6 @@
             .then(res => { document.getElementById('realtime-price').innerText = res.data !== "現場評估報價" ? "$" + res.data : "現場評估報價"; });
         }
 
-        // --- 內嵌新增車庫 --- 
         function toggleInlineNewCar(show) {
             if (show) {
                 populateBrandDropdown();
@@ -538,6 +543,7 @@
             let html = '';
             for (let i = 0; i < firstDay; i++) { html += `<div></div>`; }
             
+            // 雙車位顯示閾值 (2車位 * 9小時 * 60分 = 1080分。設 900 變忙碌)
             for (let d = 1; d <= daysInMonth; d++) {
                 let cellDate = new Date(year, month, d);
                 let dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -546,7 +552,7 @@
                 let isSunday = cellDate.getDay() === 0;
                 let cssClass = isPast || isSunday ? 'past' : '';
                 
-                if (!isPast && !isSunday && calendarOverview[dateStr] >= 480) cssClass += ' busy';
+                if (!isPast && !isSunday && calendarOverview[dateStr] >= 900) cssClass += ' busy';
 
                 if(isPast || isSunday) html += `<div class="cal-day ${cssClass}">${d}</div>`;
                 else html += `<div class="cal-day ${cssClass}" id="cal-day-${dateStr}" onclick="selectDate('${dateStr}')">${d}</div>`;
@@ -622,16 +628,18 @@
             document.getElementById('view-step1').classList.remove('hidden');
         }
 
-        // --- 關閉視窗邏輯 ---
+        // --- 強制關閉視窗邏輯 ---
         function closeApp() {
             try {
                 if(liff.isInClient()) {
                     liff.closeWindow(); 
                 } else {
-                    document.getElementById('main-container').innerHTML = "<h2 style='text-align:center; color:white; margin-top: 50px;'>預約程序已結束，請手動關閉此頁面。</h2>";
+                    // 若在一般瀏覽器中，給予優雅的提示
+                    document.getElementById('main-container').innerHTML = "<h2 style='text-align:center; color:var(--gold); margin-top: 50px;'>感謝預約！</h2><p style='text-align:center; color:white;'>請手動關閉此分頁，或返回 LINE 聊天室。</p>";
+                    window.close(); // 盡力嘗試關閉
                 }
             } catch(e) {
-                document.getElementById('main-container').innerHTML = "<h2 style='text-align:center; color:white; margin-top: 50px;'>預約程序已結束，請手動關閉此頁面。</h2>";
+                document.getElementById('main-container').innerHTML = "<h2 style='text-align:center; color:var(--gold); margin-top: 50px;'>感謝預約！</h2><p style='text-align:center; color:white;'>請手動關閉此分頁，或返回 LINE 聊天室。</p>";
             }
         }
 
@@ -651,7 +659,6 @@
             .then(() => { 
                 document.getElementById('loader').style.display = 'none';
                 
-                // 優化後的成功畫面 (不再呼叫 window.close() 避免瀏覽器警告)
                 const successHtml = `
                     <div class="card" style="text-align:center; padding: 40px 20px;">
                         <div style="font-size: 50px; margin-bottom: 20px;">✅</div>
