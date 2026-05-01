@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>5295 STUDIO | 頂級汽車美容</title>
-    <!-- 引入 Noto Sans TC (中文) 和 Roboto (英文/數字) -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
@@ -12,7 +11,6 @@
 
     <style>
         :root { --bg: #050505; --gold: #d1c1a5; --red: #d92128; --text: #f0f0f0; --box: rgba(209, 193, 165, 0.05); }
-        /* 使用系統字體回退機制，數字優先使用 Roboto */
         body { margin: 0; background-color: var(--bg); color: var(--text); font-family: 'Roboto', 'Noto Sans TC', sans-serif; overflow-x: hidden; padding-bottom: 80px;}
         header { text-align: center; padding: 15px 0; border-bottom: 1px solid rgba(209, 193, 165, 0.3); background: #0a0a0a; }
         .logo-img { max-width: 180px; height: auto; display: block; margin: 0 auto; }
@@ -47,8 +45,13 @@
         .btn-remove { background: transparent; border: 1px solid var(--red); color: var(--red); padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 儀表板專屬 UI */
-        .dash-car-img { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; border: 1px solid var(--gold); margin-bottom: 15px; }
+        /* 儀表板自適應畫廊 (Gallery) UI */
+        .dash-gallery { margin-bottom: 20px; border-radius: 8px; overflow: hidden; border: 1px solid var(--gold); }
+        .dash-main-img { width: 100%; height: 200px; background-size: cover; background-position: center; }
+        .dash-sub-grid { display: grid; grid-template-columns: repeat(4, 1fr); background: #050505; border-top: 1px solid var(--gold); }
+        .dash-sub-img { width: 100%; aspect-ratio: 1/1; background-size: cover; background-position: center; border-right: 1px solid var(--gold); }
+        .dash-sub-img:last-child { border-right: none; }
+
         .dash-box { background: #111; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid var(--red); }
         .progress-container { width: 100%; background: #222; border-radius: 10px; height: 12px; margin-top: 10px; overflow: hidden; }
         .progress-bar { height: 100%; background: linear-gradient(90deg, #d1c1a5, #d92128); border-radius: 10px; transition: width 1s ease; }
@@ -197,11 +200,9 @@
         
         <div id="view-dashboard" class="hidden">
             <h2 style="text-align:center; color:var(--gold); border:none; margin-top:10px;">我的愛車儀表板</h2>
-            
             <select id="dash-plate" onchange="renderDashboard()" style="margin-bottom: 20px; font-size: 16px; padding: 15px; text-align: center;"></select>
             
-            <img id="dash-img" class="dash-car-img" src="https://via.placeholder.com/800x400/111111/d1c1a5?text=NO+IMAGE">
-            
+            <div id="dash-photo-container"></div>
             <div id="dash-content"></div>
             
             <button class="btn btn-outline" style="margin-top: 30px;" onclick="closeApp()">關閉儀表板</button>
@@ -229,7 +230,7 @@
         // ==========================================
         // 🚨 系統設定區
         // ==========================================
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwFOks4u3U9CIWkpaYv6Bze4VzP1earxUQHwBmlpOfelPaReYFho_PpQb_OuEmFGxSxDg/exec'; 
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzbyqTQfJtCMQnZ_dTrVOZCTUfmVQja4YzqtXSnR7ANMH_AnO0BaPtaRR96li0l_e3hzg/exec'; 
         const LIFF_ID = '2008811649-QZq68T5c'; 
         const DEFAULT_IMG = 'https://via.placeholder.com/800x400/111111/d1c1a5?text=NO+IMAGE';
 
@@ -287,15 +288,12 @@
             }
         };
 
-        // --- 優化版：懶加載使用者資料與行事曆 ---
         function fetchUserData() {
-            // 先取得使用者基本資料 (速度較快)
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "checkUser", userId: globalUserId }) })
             .then(r => r.json())
             .then(userRes => {
                 if (userRes.status === "error") throw new Error("GAS 錯誤: " + userRes.message);
 
-                // 解鎖畫面
                 document.getElementById('loader').style.display = 'none';
                 carOptionsData = userRes.data.carOptions || [];
                 userCars = userRes.data.cars || [];
@@ -315,18 +313,15 @@
                         initBookingForm(); 
                     }
                     
-                    // 背景偷抓行事曆
                     document.getElementById('cal-month-title').innerHTML = "<span style='font-size:12px;color:#888;'>行事曆同步中...</span>";
                     fetchCalendarData();
                 }
             }).catch(err => {
                 document.getElementById('loader').style.display = 'flex';
                 document.getElementById('loader-text').innerHTML = `<span style="color:var(--red);">資料連線異常</span><br><span style="font-size:12px; color:#888;">${err.message || '請確認網路狀態'}</span>`;
-                console.error(err);
             });
         }
 
-        // 獨立抓取行事曆的函數
         function fetchCalendarData() {
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "getCalendarOverview" }) })
             .then(r => r.json())
@@ -353,7 +348,18 @@
         function renderDashboard() {
             const plate = document.getElementById('dash-plate').value;
             const car = userCars.find(c => c.plate === plate);
-            document.getElementById('dash-img').src = car.photoMain || DEFAULT_IMG;
+            
+            let mainImg = car.photoMain || DEFAULT_IMG;
+            let p1 = car.photo1 ? `<div class="dash-sub-img" style="background-image:url('${car.photo1}')"></div>` : '';
+            let p2 = car.photo2 ? `<div class="dash-sub-img" style="background-image:url('${car.photo2}')"></div>` : '';
+            let p3 = car.photo3 ? `<div class="dash-sub-img" style="background-image:url('${car.photo3}')"></div>` : '';
+            let p4 = car.photo4 ? `<div class="dash-sub-img" style="background-image:url('${car.photo4}')"></div>` : '';
+            
+            let galleryHtml = `<div class="dash-gallery"><div class="dash-main-img" style="background-image:url('${mainImg}')"></div>`;
+            if(p1 || p2 || p3 || p4) galleryHtml += `<div class="dash-sub-grid">${p1}${p2}${p3}${p4}</div>`;
+            galleryHtml += `</div>`;
+            
+            document.getElementById('dash-photo-container').innerHTML = galleryHtml;
             
             const history = userHistory.filter(h => h.plate === plate);
             const contentDiv = document.getElementById('dash-content');
