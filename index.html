@@ -68,13 +68,14 @@
     
     <header><img src="./logo.png" alt="5295 STUDIO" class="logo-img"></header>
 
-    <div class="container">
-        <div id="view-step1" class="hidden">
+    <div class="container" id="main-container">
+        <!-- 視角 1：預約主頁面 -->
+        <div id="view-step1">
             <div class="card">
                 <h2>1. 我的愛車</h2>
                 <div id="select-car-section">
                     <div style="display: flex; gap: 10px; align-items: center;">
-                        <select id="b-plate" onchange="renderCarPhotos()" style="flex: 1;"></select>
+                        <select id="b-plate" onchange="renderCarPhotos(); updateServiceLogic();" style="flex: 1;"></select>
                         <button class="btn btn-outline" style="width: auto; margin-top: 5px; padding: 0 15px; font-size: 12px; white-space: nowrap;" onclick="toggleInlineNewCar(true)">+ 新增愛車</button>
                     </div>
                     <div style="margin-top: 15px;">
@@ -108,6 +109,7 @@
                 </div>
             </div>
 
+            <!-- 動態服務選擇區塊 (加入即時金額顯示) -->
             <div class="card">
                 <h2>2. 服務項目 <span style="font-size: 10px; color:#888;">(最多選 5 項)</span></h2>
                 <button type="button" class="btn btn-outline" style="padding: 10px; font-size: 13px; margin-bottom: 15px; margin-top: 0;" onclick="document.getElementById('pricelist-modal').classList.remove('hidden')">📋 查看詳細價目表</button>
@@ -133,11 +135,12 @@
                 <button class="btn btn-outline" style="font-size:12px; padding:8px; width:auto; border-style:dashed;" onclick="addServiceRow()">➕ 新增服務項目</button>
                 
                 <div style="margin-top: 15px; padding: 10px; background: #111; border-radius: 4px;">
-                    <p style="margin:0; font-size: 14px; color: var(--gold);">預估總工時：<span id="total-time-text" style="color:var(--red); font-weight:bold; font-size:16px;">0 分鐘</span></p>
-                    <p style="margin:5px 0 0 0; font-size: 11px; color: #888;">系統將依照總工時為您安排合適的空檔。</p>
+                    <p style="margin:0; font-size: 14px; color: var(--gold);">預估總金額：<span id="realtime-price" style="color:var(--red); font-weight:bold; font-size:16px;">$0</span></p>
+                    <p style="margin:5px 0 0 0; font-size: 14px; color: var(--gold);">預估總工時：<span id="total-time-text" style="color:var(--red); font-weight:bold; font-size:16px;">0 分鐘</span></p>
                 </div>
             </div>
 
+            <!-- 天氣與時間選擇器 -->
             <div class="card">
                 <h2>3. 日期與時間</h2>
                 <div class="cal-nav"><button onclick="changeMonth(-1)">❮</button><span id="cal-month-title"></span><button onclick="changeMonth(1)">❯</button></div>
@@ -145,14 +148,14 @@
                 <div id="cal-body" class="calendar-grid" style="margin-top: 5px;"></div>
 
                 <div id="time-selector" class="hidden">
-                    <p style="margin-top:20px; font-size:14px; color:var(--gold);">智慧空檔搜尋結果 <span style="color:#888; font-size:12px;">(請務必選滿 3 個志願)</span></p>
+                    <p style="margin-top:20px; font-size:14px; color:var(--gold);">智慧空檔搜尋結果 <span style="color:#888; font-size:12px;">(請務必選滿 3 個時段)</span></p>
                     <div id="time-slots-body" class="time-slot-container"></div>
                 </div>
                 <div style="margin-top: 15px; padding: 10px; background: #111; border-radius: 4px; font-size: 13px;">
                     已選時段：<br><span id="selected-dates-text" style="color: var(--red); font-weight: bold;">尚未選擇</span>
                 </div>
                 
-                <button class="btn" onclick="goToStep2()" style="margin-top: 25px;">下一步：檢視報價</button>
+                <button class="btn" onclick="goToStep2()" style="margin-top: 25px;">下一步：確認預約資訊</button>
             </div>
         </div>
 
@@ -162,10 +165,9 @@
                 <div style="background: #111; padding: 15px; border-radius: 4px;">
                     <p>車牌：<span id="c-plate"></span></p>
                     <p>工時：<span id="c-duration" style="color:var(--gold);"></span></p>
+                    <p>金額：<span id="c-price-display" style="color:var(--red); font-weight:bold; font-size:16px;"></span></p>
                     <p>項目：<span id="c-service"></span></p>
-                    <p>志願時段：<span id="c-dates" style="color:var(--gold);"></span></p>
-                    <hr style="border-color: #333;">
-                    <h3 style="margin: 0; color: var(--gold); text-align: center;" id="c-price">計算中...</h3>
+                    <p>時段：<span id="c-dates" style="color:var(--gold);"></span></p>
                 </div>
                 <button class="btn" onclick="submitFinalBooking()">確認送出預約</button>
                 <button class="btn btn-outline" onclick="goBackStep1()" style="margin-top: 10px;">返回修改</button>
@@ -173,6 +175,7 @@
         </div>
     </div>
 
+    <!-- Modals -->
     <div id="crop-modal" class="modal hidden">
         <div id="crop-container"><img id="crop-image"></div>
         <div class="modal-controls">
@@ -191,8 +194,11 @@
     <input type="file" id="file-uploader" accept="image/*" style="display:none;">
 
     <script>
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwMqGTB5Xqk16epCRbJ_6D49w4JsgdJsxLe_XpEFzpYTloyHuDPSjKy-suM9XcAP5tivA/exec'; 
-        const LIFF_ID = '2008811649-QZq68T5c'; 
+        // ==========================================
+        // 🚨 系統設定區
+        // ==========================================
+        const GAS_URL = '請貼上你最新的_GAS_網址'; 
+        const LIFF_ID = 'https://script.google.com/macros/s/AKfycbxhwx02NuWhE6eQeu-mOgH_thqL8aRktkhMPkdO_V436frTAuCdhKKU5CCe46wkIFv9NQ/exec'; 
         const DEFAULT_IMG = 'https://via.placeholder.com/800x400/111111/d1c1a5?text=NO+IMAGE';
 
         let globalUserId = ""; let globalLineName = "";
@@ -209,7 +215,6 @@
         let currentServicesArray = [];
         let lastSelectedDate = "";
 
-        // 階層定義 (數字越大階層越高)
         const washLevels = {"精緻洗車": 1, "精緻打蠟": 2, "深層美容": 3};
         const coatLevels = {"鍍膜維護": 1, "除油膜+玻璃鍍膜": 2, "經典鍍膜": 3, "精緻鍍膜": 4};
 
@@ -291,7 +296,6 @@
             let hasSpecialCoating = false;
 
             selects.forEach(select => {
-                // 自動清除被高階服務覆蓋的選項
                 if (select.value && washLevels[select.value] && washLevels[select.value] < maxWash) {
                     select.value = ""; showToast("已自動移除較低階的服務");
                 }
@@ -334,6 +338,9 @@
 
             document.getElementById('total-time-text').innerText = displayTime;
             
+            // 即時計算金額
+            fetchPrice();
+            
             if(lastSelectedDate) {
                 document.getElementById('time-slots-body').innerHTML = "";
                 selectedTimeSlots = [];
@@ -342,7 +349,23 @@
             }
         }
 
-        // 新增車庫
+        function fetchPrice() {
+            if(currentServicesArray.length === 0) {
+                document.getElementById('realtime-price').innerText = "$0";
+                return;
+            }
+            document.getElementById('realtime-price').innerText = "計算中...";
+            fetch(GAS_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ action: "getQuote", plate: document.getElementById('b-plate').value, services: currentServicesArray }) 
+            })
+            .then(res => res.json())
+            .then(res => {
+                document.getElementById('realtime-price').innerText = res.data !== "現場評估報價" ? "$" + res.data : "現場評估報價";
+            });
+        }
+
+        // --- 內嵌新增車庫 --- 
         function toggleInlineNewCar(show) {
             if (show) {
                 populateBrandDropdown();
@@ -465,6 +488,8 @@
             setPhoto('p-main', car.photoMain, '+ 愛車主視覺');
             setPhoto('p-1', car.photo1, '+ 車頭細節'); setPhoto('p-2', car.photo2, '+ 側邊細節');
             setPhoto('p-3', car.photo3, '+ 車尾細節'); setPhoto('p-4', car.photo4, '+ 內裝細節');
+            
+            updateServiceLogic(); // 切換車輛時，重新計算該車輛的金額
         }
 
         function changeMonth(offset) {
@@ -537,7 +562,7 @@
                 selectedTimeSlots = selectedTimeSlots.filter(t => t !== displayStr);
                 el.classList.remove('selected');
             } else {
-                if (selectedTimeSlots.length >= 3) return showToast("最多選擇 3 個志願時段！");
+                if (selectedTimeSlots.length >= 3) return showToast("最多選擇 3 個時段！");
                 selectedTimeSlots.push(displayStr);
                 el.classList.add('selected');
             }
@@ -545,30 +570,23 @@
             document.getElementById('selected-dates-text').innerHTML = selectedTimeSlots.length > 0 ? '<br>' + selectedTimeSlots.join('<br>') : '尚未選擇';
         }
 
-        // --- 強制選擇 3 個志願 ---
+        // --- 強制選滿 3 個時段 ---
         function goToStep2() {
             if(currentServicesArray.length === 0) return showToast("請至少選擇 1 項服務！");
             
-            // 強制阻擋機制
             if(selectedTimeSlots.length !== 3) {
-                alert("為了讓店家能為您安排最佳空檔，請務必選擇「3 個志願時段」！");
+                alert("為了讓系統能為您安排最佳空檔，請務必選滿「 3 個時段」！");
                 return;
             }
             
             document.getElementById('c-plate').innerText = document.getElementById('b-plate').value;
             document.getElementById('c-duration').innerText = document.getElementById('total-time-text').innerText;
+            document.getElementById('c-price-display').innerText = document.getElementById('realtime-price').innerText;
             document.getElementById('c-service').innerHTML = '<br>' + currentServicesArray.join('<br>');
             document.getElementById('c-dates').innerHTML = '<br>' + selectedTimeSlots.join('<br>');
             
             document.getElementById('view-step1').classList.add('hidden');
             document.getElementById('view-step2').classList.remove('hidden');
-            document.getElementById('c-price').innerText = "計算中...";
-            
-            fetch(GAS_URL, { 
-                method: 'POST', 
-                body: JSON.stringify({ action: "getQuote", plate: document.getElementById('b-plate').value, services: currentServicesArray }) 
-            })
-            .then(res => res.json()).then(res => { document.getElementById('c-price').innerText = res.data !== "現場評估報價" ? "$" + res.data : "現場評估報價"; });
         }
 
         function goBackStep1() {
@@ -582,14 +600,24 @@
                 plate: document.getElementById('b-plate').value, 
                 services: currentServicesArray, 
                 selectedDates: selectedTimeSlots, 
-                price: document.getElementById('c-price').innerText,
+                price: document.getElementById('realtime-price').innerText,
                 totalDuration: currentTotalDuration
             };
             
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "submitBooking", userId: globalUserId, bookingData: bData }) })
             .then(() => { 
-                alert('預約送出成功！已通知店家，請留意 LINE 通知。'); 
-                liff.closeWindow(); 
+                alert('預約送出成功！店家將盡快為您確認。'); 
+                
+                // 防呆機制：若不是在 LINE 中開啟，則跳出提示並手動隱藏畫面
+                try {
+                    if(liff.isInClient()) {
+                        liff.closeWindow(); 
+                    } else {
+                        window.close(); // 外部瀏覽器嘗試關閉
+                        document.getElementById('main-container').innerHTML = "<h2 style='text-align:center; color:white; margin-top: 50px;'>預約已送出，您可以關閉此頁面。</h2>";
+                        document.getElementById('loader').style.display = 'none';
+                    }
+                } catch(e) {}
             });
         }
     </script>
