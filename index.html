@@ -52,7 +52,7 @@
         .progress-bar { height: 100%; background: linear-gradient(90deg, #d1c1a5, #d92128); border-radius: 10px; transition: width 1s ease; }
 
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,5,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; color: var(--gold); text-align: center; padding: 20px;}
-        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(217, 33, 40, 0.9); color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 14px; z-index: 10000; opacity: 0; transition: 0.3s; pointer-events: none; font-weight: bold;}
+        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(217, 33, 40, 0.9); color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 14px; z-index: 10000; opacity: 0; transition: 0.3s; pointer-events: none; font-weight: bold; text-align: center;}
         #toast.show { opacity: 1; }
 
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center;}
@@ -67,13 +67,12 @@
         
         #custom-alert { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 3000; display: flex; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;}
         .alert-box { background: #111; border: 1px solid var(--gold); border-radius: 8px; padding: 25px; text-align: center; width: 100%; max-width: 320px; }
-        .alert-title { color: var(--gold); font-size: 18px; margin-top: 0; margin-bottom: 15px; border-bottom: 1px dashed #333; padding-bottom: 10px; }
+        .alert-title { color: var(--gold); font-size: 18px; margin-top: 0; margin-bottom: 15px; border-bottom: 1px dashed #333; padding-bottom: 10px; font-weight: bold; }
         .alert-msg { color: #fff; font-size: 15px; line-height: 1.5; margin-bottom: 25px; }
     </style>
 </head>
 <body>
 
-    <!-- 全域載入畫面 -->
     <div id="loader">
         <img src="./logo.png" alt="5295 STUDIO" style="width: 150px; margin-bottom: 20px;">
         <p id="loader-text">系統載入中...</p>
@@ -81,7 +80,6 @@
     
     <div id="toast">處理中...</div>
     
-    <!-- 客製化彈跳視窗 -->
     <div id="custom-alert" class="hidden">
         <div class="alert-box">
             <h3 class="alert-title" id="custom-alert-title">提示</h3>
@@ -94,9 +92,6 @@
 
     <div class="container" id="main-container">
         
-        <!-- ============================================== -->
-        <!-- 路由 1：預約主頁面                             -->
-        <!-- ============================================== -->
         <div id="view-step1" class="hidden">
             <div class="card">
                 <h2>1. 我的愛車</h2>
@@ -130,13 +125,12 @@
                     <input type="text" id="nc-model-other" class="hidden" placeholder="請手動輸入型號">
                     
                     <div style="display:flex; gap:10px; margin-top: 20px;">
-                        <button class="btn btn-outline" style="margin-top:0;" onclick="toggleInlineNewCar(false)">取消</button>
+                        <button id="btn-cancel-nc" class="btn btn-outline" style="margin-top:0;" onclick="toggleInlineNewCar(false)">取消</button>
                         <button class="btn" style="margin-top:0;" onclick="submitNewCar()">確認新增</button>
                     </div>
                 </div>
             </div>
 
-            <!-- 動態服務選擇區塊 -->
             <div class="card">
                 <h2>2. 服務項目 <span style="font-size: 10px; color:#888;">(最多選 5 項)</span></h2>
                 <div id="service-container">
@@ -166,7 +160,6 @@
                 </div>
             </div>
 
-            <!-- 天氣與時間選擇器 -->
             <div class="card">
                 <h2>3. 日期與時段</h2>
                 <div class="cal-nav"><button onclick="changeMonth(-1)">❮</button><span id="cal-month-title"></span><button onclick="changeMonth(1)">❯</button></div>
@@ -185,7 +178,6 @@
             </div>
         </div>
 
-        <!-- 預約確認頁面 -->
         <div id="view-step2" class="hidden">
             <div class="card">
                 <h2>確認預約資訊</h2>
@@ -201,9 +193,6 @@
             </div>
         </div>
         
-        <!-- ============================================== -->
-        <!-- 路由 2：車輛儀表板頁面 (Dashboard)             -->
-        <!-- ============================================== -->
         <div id="view-dashboard" class="hidden">
             <h2 style="text-align:center; color:var(--gold); border:none; margin-top:10px;">我的愛車儀表板</h2>
             
@@ -217,7 +206,6 @@
         </div>
     </div>
 
-    <!-- Modals -->
     <div id="crop-modal" class="modal hidden">
         <div id="crop-container"><img id="crop-image"></div>
         <div class="modal-controls">
@@ -237,7 +225,7 @@
 
     <script>
         // ==========================================
-        // 🚨 系統核心設定區
+        // 🚨 系統設定區
         // ==========================================
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbzeXOFTFEFpbSLZf2mMTEChA6IQCNEgwXzB_WrSQS2KvQDwN3kSiWcJujCjxayRnxdOfg/exec'; 
         const LIFF_ID = '2008811649-QZq68T5c'; 
@@ -252,7 +240,6 @@
         let currentCalYear = new Date().getFullYear(); let currentCalMonth = new Date().getMonth();
         let currentTotalDuration = 0; let currentServicesArray = []; let lastSelectedDate = "";
 
-        // 階層定義引擎 (數字越大代表越高階)
         const washLevels = {"精緻洗車": 1, "精緻打蠟": 2, "深層美容": 3};
         const coatLevels = {"鍍膜維護": 1, "除油膜+玻璃鍍膜": 2, "經典鍍膜": 3, "精緻鍍膜": 4};
 
@@ -268,7 +255,6 @@
             document.getElementById('custom-alert').classList.remove('hidden');
         }
 
-        // 動態切換按鈕文字
         function toggleExtraPhotos() {
             const el = document.getElementById('extra-photos');
             const btn = document.getElementById('toggle-photos-btn');
@@ -277,7 +263,6 @@
             else btn.innerText = "➖ 收起細節照片";
         }
 
-        // --- 初始化與連線檢查 ---
         window.onload = function() {
             liff.init({ liffId: LIFF_ID }).then(() => {
                 if (!liff.isLoggedIn()) { liff.login(); return; }
@@ -286,7 +271,7 @@
                     fetchUserData();
                 });
             }).catch(err => { 
-                document.getElementById('loader-text').innerHTML = '<span style="color:var(--red);">系統載入失敗</span><br><span style="font-size:12px; color:#888;">請確認您是在 LINE APP 中開啟此連結，<br>或檢查 LIFF ID 是否設定正確。</span>';
+                document.getElementById('loader-text').innerHTML = '<span style="color:var(--red);">系統載入失敗</span><br><span style="font-size:12px; color:#888;">請確認您是在 LINE APP 中開啟此連結。</span>';
             });
             
             const plateInput = document.getElementById('nc-plate');
@@ -315,7 +300,6 @@
                 userCars = userRes.data.cars || [];
                 userHistory = userRes.data.history || [];
                 
-                // --- 判斷網址參數啟動對應的路由 ---
                 const urlParams = new URLSearchParams(window.location.search);
                 if (urlParams.get('page') === 'dashboard') {
                     document.getElementById('view-dashboard').classList.remove('hidden');
@@ -324,7 +308,9 @@
                     document.getElementById('view-step1').classList.remove('hidden');
                     if (userCars.length === 0) {
                         toggleInlineNewCar(true);
-                        document.getElementById('btn-cancel-nc').style.display = 'none';
+                        // 修正：確保按鈕存在再操作，避免當機
+                        let cancelBtn = document.getElementById('btn-cancel-nc');
+                        if (cancelBtn) cancelBtn.style.display = 'none';
                     } else { initBookingForm(); }
                     renderCalendar(currentCalYear, currentCalMonth);
                 }
@@ -336,7 +322,7 @@
         }
 
         // ==========================================
-        // 模組：儀表板 (Dashboard) 渲染邏輯
+        // 儀表板 (Dashboard) 渲染邏輯
         // ==========================================
         function initDashboard() {
             const select = document.getElementById('dash-plate');
@@ -376,7 +362,6 @@
                 const diffTime = nextDate - today;
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 
-                // 計算鍍膜進度 (預設效期 90 天)
                 let percentage = Math.max(0, Math.min(100, (diffDays / 90) * 100));
                 
                 html += `<div class="dash-box" style="border-left-color: #1DB446;">
@@ -390,12 +375,11 @@
                             <div style="font-size:11px; color:#888; margin-top:8px; text-align:right;">建議下次進廠：${latest.nextReminder}</div>
                          </div>`;
             }
-            
             contentDiv.innerHTML = html;
         }
 
         // ==========================================
-        // 模組：預約系統邏輯 (包含防呆)
+        // 預約系統邏輯 (包含防呆)
         // ==========================================
         function addServiceRow() {
             const container = document.getElementById('service-container');
@@ -426,7 +410,6 @@
             let totalTime = 0; let hasSpecialCoating = false;
 
             selects.forEach((select, index) => {
-                // 自動清除被覆蓋的服務
                 if (select.value && washLevels[select.value] && washLevels[select.value] < maxWash) {
                     select.value = ""; showToast("已自動為您整合包含在內的項目");
                 }
@@ -442,7 +425,6 @@
                     opt.disabled = false;
                     opt.text = opt.text.replace(" (已包含)", "").replace(" (已選)", "");
 
-                    // 防呆：禁止重複選擇相同選項
                     let isSelectedElsewhere = selects.some((otherSelect, otherIndex) => { return index !== otherIndex && otherSelect.value === opt.value && otherSelect.value !== ""; });
 
                     if (isSelectedElsewhere) {
@@ -473,7 +455,6 @@
             document.getElementById('total-time-text').innerText = displayTime;
             fetchPrice();
             
-            // 更動工時後，重新計算有空的時段
             if(lastSelectedDate) {
                 document.getElementById('time-slots-body').innerHTML = "";
                 selectedTimeSlots = [];
@@ -489,9 +470,6 @@
             .then(res => res.json()).then(res => { document.getElementById('realtime-price').innerText = res.data !== "現場評估報價" ? "$" + res.data : "現場評估報價"; });
         }
 
-        // ==========================================
-        // 模組：車庫與上傳機制
-        // ==========================================
         function toggleInlineNewCar(show) {
             if (show) {
                 populateBrandDropdown();
@@ -539,7 +517,7 @@
             const plate = document.getElementById('nc-plate').value.trim();
             let brand = document.getElementById('nc-brand').value; if(brand === 'other') brand = document.getElementById('nc-brand-other').value.trim();
             let model = document.getElementById('nc-model').value; if(model === 'other') model = document.getElementById('nc-model-other').value.trim();
-            if(!plate || !brand || !model) return showToast('請完整填寫車牌、廠牌與型號！');
+            if(!plate || !brand || !model) return customAlert('請完整填寫車牌、廠牌與型號！');
             
             document.getElementById('loader').style.display = 'flex';
             document.getElementById('loader-text').innerText = "建立車庫中...";
@@ -602,7 +580,9 @@
             userCars.forEach(car => { select.innerHTML += `<option value="${car.plate}">${car.plate} (${car.brand})</option>`; });
             renderCarPhotos();
             document.getElementById('select-car-section').classList.remove('hidden');
-            document.getElementById('btn-cancel-nc').style.display = 'block';
+            
+            let cancelBtn = document.getElementById('btn-cancel-nc');
+            if (cancelBtn) cancelBtn.style.display = 'block';
         }
 
         function renderCarPhotos() {
@@ -620,9 +600,6 @@
             updateServiceLogic(); 
         }
 
-        // ==========================================
-        // 模組：智慧日曆與時段渲染
-        // ==========================================
         function changeMonth(offset) {
             currentCalMonth += offset;
             if (currentCalMonth > 11) { currentCalMonth = 0; currentCalYear++; }
@@ -648,7 +625,6 @@
                 let isSunday = cellDate.getDay() === 0;
                 let cssClass = isPast || isSunday ? 'past' : '';
                 
-                // 日曆大數據閾值 (雙車位滿載 = 1080分，超過900分變灰色)
                 if (!isPast && !isSunday && calendarOverview[dateStr] >= 900) cssClass += ' busy';
 
                 if(isPast || isSunday) html += `<div class="cal-day ${cssClass}">${d}</div>`;
@@ -658,7 +634,7 @@
         }
 
         function selectDate(dateStr) {
-            if (currentTotalDuration === 0) return showToast("請先選擇服務項目，系統才能計算空檔！");
+            if (currentTotalDuration === 0) return customAlert("請先選擇服務項目，系統才能計算空檔！");
             
             lastSelectedDate = dateStr;
             document.querySelectorAll('.cal-day').forEach(el => el.classList.remove('active'));
@@ -696,11 +672,8 @@
             document.getElementById('selected-dates-text').innerHTML = selectedTimeSlots.length > 0 ? '<br>' + selectedTimeSlots.join('<br>') : '尚未選擇';
         }
 
-        // ==========================================
-        // 模組：送出與關閉視窗邏輯
-        // ==========================================
         function goToStep2() {
-            if(currentServicesArray.length === 0) return showToast("請至少選擇 1 項服務！");
+            if(currentServicesArray.length === 0) return customAlert("請至少選擇 1 項服務！");
             if(selectedTimeSlots.length !== 3) {
                 customAlert("為了讓系統能為您安排最佳空檔，請務必選滿「 3 個時段」！", "預約提示");
                 return;
@@ -720,7 +693,6 @@
             document.getElementById('view-step1').classList.remove('hidden');
         }
 
-        // 完美關閉機制
         function closeApp() {
             try {
                 if(liff.isInClient()) {
