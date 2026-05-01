@@ -40,9 +40,10 @@
         .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
         .photo-box { height: 100px; background: #111; border: 1px dashed var(--gold); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--gold); background-size: cover; background-position: center; border-radius: 4px; position: relative;}
         .photo-main { grid-column: span 2; height: 180px; }
-        .service-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+        .service-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; animation: fadeIn 0.3s ease; }
         .service-row select { margin-top: 0; flex: 1; }
         .btn-remove { background: transparent; border: 1px solid var(--red); color: var(--red); padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* 儀表板專屬 UI */
         .dash-car-img { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; border: 1px solid var(--gold); margin-bottom: 15px; }
@@ -60,22 +61,31 @@
         .modal-controls { padding: 15px; display: flex; justify-content: space-between; background: #000; border-top: 1px solid #333; width: 100%; box-sizing: border-box;}
         .modal-controls button { width: 48%; margin-top: 0; }
         
+        #pricelist-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: flex; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box;}
+        .img-wrapper { position: relative; max-width: 100%; display: flex; justify-content: center; align-items: center;}
+        .close-circle { position: absolute; top: -12px; right: -12px; background: var(--red); color: #fff; border: 2px solid #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 20px; font-weight: bold; line-height: 1; padding: 0; z-index: 2001; cursor: pointer;}
+        
         #custom-alert { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 3000; display: flex; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;}
         .alert-box { background: #111; border: 1px solid var(--gold); border-radius: 8px; padding: 25px; text-align: center; width: 100%; max-width: 320px; }
+        .alert-title { color: var(--gold); font-size: 18px; margin-top: 0; margin-bottom: 15px; border-bottom: 1px dashed #333; padding-bottom: 10px; }
+        .alert-msg { color: #fff; font-size: 15px; line-height: 1.5; margin-bottom: 25px; }
     </style>
 </head>
 <body>
 
+    <!-- 全域載入畫面 -->
     <div id="loader">
         <img src="./logo.png" alt="5295 STUDIO" style="width: 150px; margin-bottom: 20px;">
         <p id="loader-text">系統載入中...</p>
     </div>
+    
     <div id="toast">處理中...</div>
     
+    <!-- 客製化彈跳視窗 -->
     <div id="custom-alert" class="hidden">
         <div class="alert-box">
-            <h3 class="alert-title" id="custom-alert-title" style="color:var(--gold); border-bottom:1px dashed #333; padding-bottom:10px;">提示</h3>
-            <div id="custom-alert-msg" style="color:#fff; font-size:15px; margin-bottom:25px;">訊息內容</div>
+            <h3 class="alert-title" id="custom-alert-title">提示</h3>
+            <div id="custom-alert-msg" class="alert-msg">訊息內容</div>
             <button class="btn" style="margin-top:0; padding:10px;" onclick="document.getElementById('custom-alert').classList.add('hidden')">確定</button>
         </div>
     </div>
@@ -84,6 +94,9 @@
 
     <div class="container" id="main-container">
         
+        <!-- ============================================== -->
+        <!-- 路由 1：預約主頁面                             -->
+        <!-- ============================================== -->
         <div id="view-step1" class="hidden">
             <div class="card">
                 <h2>1. 我的愛車</h2>
@@ -123,6 +136,7 @@
                 </div>
             </div>
 
+            <!-- 動態服務選擇區塊 -->
             <div class="card">
                 <h2>2. 服務項目 <span style="font-size: 10px; color:#888;">(最多選 5 項)</span></h2>
                 <div id="service-container">
@@ -144,6 +158,7 @@
                 </div>
                 
                 <button class="btn btn-outline" style="font-size:12px; padding:8px; width:auto; border-style:dashed;" onclick="addServiceRow()">➕ 新增服務項目</button>
+                <button type="button" class="btn btn-outline" style="padding: 8px; font-size: 12px; margin-top: 10px; border:none; text-decoration:underline;" onclick="document.getElementById('pricelist-modal').classList.remove('hidden')">📋 查看詳細價目表</button>
                 
                 <div style="margin-top: 15px; padding: 10px; background: #111; border-radius: 4px;">
                     <p style="margin:0; font-size: 14px; color: var(--gold);">預估總金額：<span id="realtime-price" style="color:var(--red); font-weight:bold; font-size:16px;">$0</span></p>
@@ -151,8 +166,9 @@
                 </div>
             </div>
 
+            <!-- 天氣與時間選擇器 -->
             <div class="card">
-                <h2>3. 日期與時間</h2>
+                <h2>3. 日期與時段</h2>
                 <div class="cal-nav"><button onclick="changeMonth(-1)">❮</button><span id="cal-month-title"></span><button onclick="changeMonth(1)">❯</button></div>
                 <div class="calendar-grid"><div class="cal-header">日</div><div class="cal-header">一</div><div class="cal-header">二</div><div class="cal-header">三</div><div class="cal-header">四</div><div class="cal-header">五</div><div class="cal-header">六</div></div>
                 <div id="cal-body" class="calendar-grid" style="margin-top: 5px;"></div>
@@ -169,6 +185,7 @@
             </div>
         </div>
 
+        <!-- 預約確認頁面 -->
         <div id="view-step2" class="hidden">
             <div class="card">
                 <h2>確認預約資訊</h2>
@@ -184,8 +201,11 @@
             </div>
         </div>
         
+        <!-- ============================================== -->
+        <!-- 路由 2：車輛儀表板頁面 (Dashboard)             -->
+        <!-- ============================================== -->
         <div id="view-dashboard" class="hidden">
-            <h2 style="text-align:center; color:var(--gold); border:none; margin-top:10px;">車輛狀態儀表板</h2>
+            <h2 style="text-align:center; color:var(--gold); border:none; margin-top:10px;">我的愛車儀表板</h2>
             
             <select id="dash-plate" onchange="renderDashboard()" style="margin-bottom: 20px; font-size: 16px; padding: 15px; text-align: center;"></select>
             
@@ -197,6 +217,7 @@
         </div>
     </div>
 
+    <!-- Modals -->
     <div id="crop-modal" class="modal hidden">
         <div id="crop-container"><img id="crop-image"></div>
         <div class="modal-controls">
@@ -205,524 +226,542 @@
         </div>
     </div>
 
+    <div id="pricelist-modal" class="modal hidden" style="background: rgba(0,0,0,0.85); padding: 20px;">
+        <div class="img-wrapper">
+            <button class="close-circle" onclick="document.getElementById('pricelist-modal').classList.add('hidden')">✕</button>
+            <img src="./list.jpg" alt="價目表" style="max-width: 100%; max-height: 85vh; object-fit: contain; border-radius: 8px; border: 2px solid var(--gold);">
+        </div>
+    </div>
+
     <input type="file" id="file-uploader" accept="image/*" style="display:none;">
 
     <script>
         // ==========================================
-        // 🚨 系統設定區
+        // 🚨 系統核心設定區
         // ==========================================
-                const GAS_URL = 'https://script.google.com/macros/s/AKfycbzeXOFTFEFpbSLZf2mMTEChA6IQCNEgwXzB_WrSQS2KvQDwN3kSiWcJujCjxayRnxdOfg/exec'; 
-                const LIFF_ID = '2008811649-QZq68T5c'; 
-                const DEFAULT_IMG = 'https://via.placeholder.com/800x400/111111/d1c1a5?text=NO+IMAGE';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzeXOFTFEFpbSLZf2mMTEChA6IQCNEgwXzB_WrSQS2KvQDwN3kSiWcJujCjxayRnxdOfg/exec'; 
+        const LIFF_ID = '2008811649-QZq68T5c'; 
+        const DEFAULT_IMG = 'https://via.placeholder.com/800x400/111111/d1c1a5?text=NO+IMAGE';
+
+        let globalUserId = ""; let globalLineName = "";
+        let userCars = []; let carOptionsData = []; let userHistory = [];
+        let newCarBase64 = ""; let currentUploadSlot = "";
+        let cropper; 
         
-                let globalUserId = ""; let globalLineName = "";
-                let userCars = []; let carOptionsData = []; let userHistory = [];
-                let newCarBase64 = ""; let currentUploadSlot = "";
-                let cropper; 
+        let calendarOverview = {}; let selectedTimeSlots = [];   
+        let currentCalYear = new Date().getFullYear(); let currentCalMonth = new Date().getMonth();
+        let currentTotalDuration = 0; let currentServicesArray = []; let lastSelectedDate = "";
+
+        // 階層定義引擎 (數字越大代表越高階)
+        const washLevels = {"精緻洗車": 1, "精緻打蠟": 2, "深層美容": 3};
+        const coatLevels = {"鍍膜維護": 1, "除油膜+玻璃鍍膜": 2, "經典鍍膜": 3, "精緻鍍膜": 4};
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg; t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        function customAlert(msg, title = "系統提示") {
+            document.getElementById('custom-alert-title').innerText = title;
+            document.getElementById('custom-alert-msg').innerText = msg;
+            document.getElementById('custom-alert').classList.remove('hidden');
+        }
+
+        // 動態切換按鈕文字
+        function toggleExtraPhotos() {
+            const el = document.getElementById('extra-photos');
+            const btn = document.getElementById('toggle-photos-btn');
+            el.classList.toggle('hidden');
+            if (el.classList.contains('hidden')) btn.innerText = "➕ 展開細節照片 (選填)";
+            else btn.innerText = "➖ 收起細節照片";
+        }
+
+        // --- 初始化與連線檢查 ---
+        window.onload = function() {
+            liff.init({ liffId: LIFF_ID }).then(() => {
+                if (!liff.isLoggedIn()) { liff.login(); return; }
+                liff.getProfile().then(p => {
+                    globalUserId = p.userId; globalLineName = p.displayName;
+                    fetchUserData();
+                });
+            }).catch(err => { 
+                document.getElementById('loader-text').innerHTML = '<span style="color:var(--red);">系統載入失敗</span><br><span style="font-size:12px; color:#888;">請確認您是在 LINE APP 中開啟此連結，<br>或檢查 LIFF ID 是否設定正確。</span>';
+            });
+            
+            const plateInput = document.getElementById('nc-plate');
+            if (plateInput) {
+                plateInput.addEventListener('input', function(e) {
+                    let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                    val = val.replace(/^([A-Z]{2,4})(\d{1,4})/, '$1-$2');
+                    val = val.replace(/^(\d{2,4})([A-Z]{2,4})/, '$1-$2');
+                    e.target.value = val;
+                });
+            }
+        };
+
+        function fetchUserData() {
+            Promise.all([
+                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "checkUser", userId: globalUserId }) }).then(r=>r.json()),
+                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "getCalendarOverview" }) }).then(r=>r.json())
+            ]).then(([userRes, calRes]) => {
                 
-                let calendarOverview = {}; let selectedTimeSlots = [];   
-                let currentCalYear = new Date().getFullYear(); let currentCalMonth = new Date().getMonth();
-                let currentTotalDuration = 0; let currentServicesArray = []; let lastSelectedDate = "";
-        
-                // 階層定義
-                const washLevels = {"精緻洗車": 1, "精緻打蠟": 2, "深層美容": 3};
-                const coatLevels = {"鍍膜維護": 1, "除油膜+玻璃鍍膜": 2, "經典鍍膜": 3, "精緻鍍膜": 4};
-        
-                function showToast(msg) {
-                    const t = document.getElementById('toast');
-                    t.innerText = msg; t.classList.add('show');
-                    setTimeout(() => t.classList.remove('show'), 3000);
-                }
-        
-                function customAlert(msg, title = "系統提示") {
-                    document.getElementById('custom-alert-title').innerText = title;
-                    document.getElementById('custom-alert-msg').innerText = msg;
-                    document.getElementById('custom-alert').classList.remove('hidden');
-                }
-        
-                function toggleExtraPhotos() {
-                    const el = document.getElementById('extra-photos');
-                    const btn = document.getElementById('toggle-photos-btn');
-                    el.classList.toggle('hidden');
-                    if (el.classList.contains('hidden')) btn.innerText = "➕ 展開細節照片 (選填)";
-                    else btn.innerText = "➖ 收起細節照片";
-                }
-        
-                window.onload = function() {
-                    liff.init({ liffId: LIFF_ID }).then(() => {
-                        if (!liff.isLoggedIn()) { liff.login(); return; }
-                        liff.getProfile().then(p => {
-                            globalUserId = p.userId; globalLineName = p.displayName;
-                            fetchUserData();
-                        });
-                    }).catch(err => { 
-                        document.getElementById('loader-text').innerHTML = '<span style="color:var(--red);">系統載入失敗</span><br><span style="font-size:12px; color:#888;">請確認您是在 LINE APP 中開啟此連結。</span>';
-                    });
-                    
-                    const plateInput = document.getElementById('nc-plate');
-                    if (plateInput) {
-                        plateInput.addEventListener('input', function(e) {
-                            let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-                            val = val.replace(/^([A-Z]{2,4})(\d{1,4})/, '$1-$2');
-                            val = val.replace(/^(\d{2,4})([A-Z]{2,4})/, '$1-$2');
-                            e.target.value = val;
-                        });
-                    }
-                };
-        
-                // 🚨 強化版錯誤捕捉機制
-                function fetchUserData() {
-                    Promise.all([
-                        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "checkUser", userId: globalUserId }) }).then(r=>r.json()),
-                        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "getCalendarOverview" }) }).then(r=>r.json())
-                    ]).then(([userRes, calRes]) => {
-                        
-                        // 檢查後端是否有回傳錯誤
-                        if (userRes.status === "error") throw new Error("GAS 錯誤: " + userRes.message);
-                        if (calRes.status === "error") throw new Error("行事曆錯誤: " + calRes.message);
-        
-                        document.getElementById('loader').style.display = 'none'; // 成功後才隱藏載入畫面
-                        calendarOverview = calRes.data || {};
-                        carOptionsData = userRes.data.carOptions || [];
-                        userCars = userRes.data.cars || [];
-                        userHistory = userRes.data.history || [];
-                        
-                        // --- 路由判斷 ---
-                        const urlParams = new URLSearchParams(window.location.search);
-                        if (urlParams.get('page') === 'dashboard') {
-                            document.getElementById('view-dashboard').classList.remove('hidden');
-                            initDashboard();
-                        } else {
-                            document.getElementById('view-step1').classList.remove('hidden');
-                            if (userCars.length === 0) {
-                                toggleInlineNewCar(true);
-                                document.getElementById('btn-cancel-nc').style.display = 'none';
-                            } else { initBookingForm(); }
-                            renderCalendar(currentCalYear, currentCalMonth);
-                        }
-                    }).catch(err => {
-                        // 將真正的錯誤原因印在畫面上
-                        document.getElementById('loader').style.display = 'flex';
-                        document.getElementById('loader-text').innerHTML = `<span style="color:var(--red);">資料連線異常</span><br><span style="font-size:12px; color:#888;">${err.message || '請確認 GAS 網址與部署權限'}</span>`;
-                        console.error(err);
-                    });
-                }
-        
-                // ==========================================
-                // 儀表板 (Dashboard) 渲染邏輯
-                // ==========================================
-                function initDashboard() {
-                    const select = document.getElementById('dash-plate');
-                    select.innerHTML = '';
-                    if (userCars.length === 0) {
-                        document.getElementById('dash-content').innerHTML = "<p style='text-align:center; color:#888;'>您目前還沒有建立車庫資料。</p>";
-                        return;
-                    }
-                    userCars.forEach(car => { select.innerHTML += `<option value="${car.plate}">${car.plate}</option>`; });
-                    renderDashboard();
-                }
-        
-                function renderDashboard() {
-                    const plate = document.getElementById('dash-plate').value;
-                    const car = userCars.find(c => c.plate === plate);
-                    document.getElementById('dash-img').src = car.photoMain || DEFAULT_IMG;
-                    
-                    const history = userHistory.filter(h => h.plate === plate);
-                    const contentDiv = document.getElementById('dash-content');
-                    
-                    if (history.length === 0) {
-                        contentDiv.innerHTML = "<div class='dash-box'><p style='margin:0; color:#888;'>該車輛尚無保養紀錄。</p></div>";
-                        return;
-                    }
-                    
-                    let html = "";
-                    const latest = history[0]; 
-                    
-                    html += `<div class="dash-box">
-                                <div style="font-size:12px; color:#888; margin-bottom:5px;">上次保養日期：${latest.date}</div>
-                                <div style="font-size:18px; color:var(--gold); font-weight:bold;">${latest.service}</div>
-                             </div>`;
-                             
-                    if (latest.nextReminder) {
-                        const today = new Date();
-                        const nextDate = new Date(latest.nextReminder.replace(/-/g, '/'));
-                        const diffTime = nextDate - today;
-                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                        
-                        let percentage = Math.max(0, Math.min(100, (diffDays / 90) * 100));
-                        
-                        html += `<div class="dash-box" style="border-left-color: #1DB446;">
-                                    <div style="display:flex; justify-content:space-between; color:#fff; font-size:14px; margin-bottom:10px;">
-                                        <span>🛡️ 鍍膜防護力</span>
-                                        <span style="color:var(--gold); font-weight:bold;">尚餘 ${diffDays > 0 ? diffDays : 0} 天</span>
-                                    </div>
-                                    <div class="progress-container">
-                                        <div class="progress-bar" style="width: ${percentage}%;"></div>
-                                    </div>
-                                    <div style="font-size:11px; color:#888; margin-top:8px; text-align:right;">建議下次進廠：${latest.nextReminder}</div>
-                                 </div>`;
-                    }
-                    
-                    contentDiv.innerHTML = html;
-                }
-        
-                // ==========================================
-                // 預約系統邏輯
-                // ==========================================
-                function addServiceRow() {
-                    const container = document.getElementById('service-container');
-                    if (container.children.length >= 5) return showToast("最多選擇 5 項服務");
-                    const newRow = document.createElement('div');
-                    newRow.className = "service-row";
-                    newRow.innerHTML = container.children[0].innerHTML.replace('</select>', '</select><button class="btn-remove" onclick="removeServiceRow(this)">✕</button>');
-                    newRow.querySelector('select').value = ""; 
-                    container.appendChild(newRow);
-                    updateServiceLogic();
-                }
-        
-                function removeServiceRow(btn) {
-                    btn.parentElement.remove();
-                    updateServiceLogic();
-                }
-        
-                function updateServiceLogic() {
-                    const selects = Array.from(document.querySelectorAll('.service-select'));
-                    let selectedValues = selects.map(s => s.value);
-        
-                    let maxWash = 0; let maxCoat = 0;
-                    selectedValues.forEach(v => {
-                        if (washLevels[v] > maxWash) maxWash = washLevels[v];
-                        if (coatLevels[v] > maxCoat) maxCoat = coatLevels[v];
-                    });
-        
-                    let totalTime = 0; let hasSpecialCoating = false;
-        
-                    selects.forEach((select, index) => {
-                        if (select.value && washLevels[select.value] && washLevels[select.value] < maxWash) {
-                            select.value = ""; showToast("已自動為您整合包含在內的項目");
-                        }
-                        if (select.value && coatLevels[select.value] && coatLevels[select.value] < maxCoat) {
-                            select.value = ""; showToast("已自動為您整合包含在內的項目");
-                        }
-        
-                        if (select.value === "精緻鍍膜") hasSpecialCoating = true;
-        
-                        const options = select.options;
-                        for (let opt of options) {
-                            if (opt.value === "") continue;
-                            opt.disabled = false;
-                            opt.text = opt.text.replace(" (已包含)", "").replace(" (已選)", "");
-        
-                            let isSelectedElsewhere = selects.some((otherSelect, otherIndex) => { return index !== otherIndex && otherSelect.value === opt.value && otherSelect.value !== ""; });
-        
-                            if (isSelectedElsewhere) {
-                                opt.disabled = true; opt.text += " (已選)";
-                            } else if (washLevels[opt.value] && washLevels[opt.value] < maxWash) {
-                                opt.disabled = true; opt.text += " (已包含)";
-                            } else if (coatLevels[opt.value] && coatLevels[opt.value] < maxCoat) {
-                                opt.disabled = true; opt.text += " (已包含)";
-                            }
-                        }
-                        
-                        const selectedOpt = select.options[select.selectedIndex];
-                        if (selectedOpt && selectedOpt.value !== "" && !selectedOpt.text.includes("(已包含)") && !selectedOpt.text.includes("(已選)")) {
-                            totalTime += parseInt(selectedOpt.dataset.time || 0);
-                        }
-                    });
-        
-                    currentServicesArray = Array.from(new Set(Array.from(selects).map(s => s.value).filter(v => v !== "")));
-                    currentTotalDuration = totalTime;
-        
-                    let displayTime = "0 分鐘";
-                    if (hasSpecialCoating) { displayTime = "1天 (需留車)"; currentTotalDuration = 540; }
-                    else if (totalTime > 0) {
-                        let h = Math.floor(totalTime / 60); let m = totalTime % 60;
-                        displayTime = h > 0 ? (m > 0 ? `${h} 小時 ${m} 分鐘` : `${h} 小時`) : `${m} 分鐘`;
-                    }
-        
-                    document.getElementById('total-time-text').innerText = displayTime;
-                    fetchPrice();
-                    
-                    if(lastSelectedDate) {
-                        document.getElementById('time-slots-body').innerHTML = "";
-                        selectedTimeSlots = [];
-                        document.getElementById('selected-dates-text').innerHTML = "尚未選擇";
-                        selectDate(lastSelectedDate);
-                    }
-                }
-        
-                function fetchPrice() {
-                    if(currentServicesArray.length === 0) { document.getElementById('realtime-price').innerText = "$0"; return; }
-                    document.getElementById('realtime-price').innerText = "計算中...";
-                    fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "getQuote", plate: document.getElementById('b-plate').value, services: currentServicesArray }) })
-                    .then(res => res.json()).then(res => { document.getElementById('realtime-price').innerText = res.data !== "現場評估報價" ? "$" + res.data : "現場評估報價"; });
-                }
-        
-                function toggleInlineNewCar(show) {
-                    if (show) {
-                        populateBrandDropdown();
-                        document.getElementById('select-car-section').classList.add('hidden');
-                        document.getElementById('inline-newcar-form').classList.remove('hidden');
-                    } else {
-                        document.getElementById('inline-newcar-form').classList.add('hidden');
-                        document.getElementById('select-car-section').classList.remove('hidden');
-                    }
-                }
-        
-                function populateBrandDropdown() {
-                    let brands = [...new Set(carOptionsData.map(o => o.brand))];
-                    let html = '<option value="">請選擇廠牌</option>';
-                    brands.forEach(b => html += `<option value="${b}">${b}</option>`);
-                    html += '<option value="other">其他 (自行輸入)</option>';
-                    document.getElementById('nc-brand').innerHTML = html;
-                }
-        
-                function onBrandChange() {
-                    let brand = document.getElementById('nc-brand').value;
-                    let modelSel = document.getElementById('nc-model');
-                    if (brand === 'other') {
-                        document.getElementById('nc-brand-other').classList.remove('hidden');
-                        document.getElementById('nc-model-other').classList.remove('hidden');
-                        modelSel.innerHTML = '<option value="other">其他 (自行輸入)</option>';
-                    } else {
-                        document.getElementById('nc-brand-other').classList.add('hidden');
-                        document.getElementById('nc-model-other').classList.add('hidden');
-                        let models = carOptionsData.filter(o => o.brand === brand);
-                        let html = '<option value="">請選擇型號</option>';
-                        models.forEach(m => html += `<option value="${m.model}">${m.model}</option>`);
-                        html += '<option value="other">其他 (自行輸入)</option>';
-                        modelSel.innerHTML = html;
-                    }
-                }
-        
-                function onModelChange() {
-                    let modelSel = document.getElementById('nc-model');
-                    if (modelSel.value === 'other') { document.getElementById('nc-model-other').classList.remove('hidden'); } 
-                    else { document.getElementById('nc-model-other').classList.add('hidden'); }
-                }
-        
-                function submitNewCar() {
-                    const plate = document.getElementById('nc-plate').value.trim();
-                    let brand = document.getElementById('nc-brand').value; if(brand === 'other') brand = document.getElementById('nc-brand-other').value.trim();
-                    let model = document.getElementById('nc-model').value; if(model === 'other') model = document.getElementById('nc-model-other').value.trim();
-                    if(!plate || !brand || !model) return showToast('請完整填寫車牌、廠牌與型號！');
-                    
-                    document.getElementById('loader').style.display = 'flex';
-                    document.getElementById('loader-text').innerText = "建立車庫中...";
-                    
-                    const data = { lineName: globalLineName, plate: plate, brand: brand, model: model, imageBase64: newCarBase64 };
-                    fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "addCar", userId: globalUserId, carData: data }) })
-                    .then(res => res.json()).then(res => {
-                        if(res.status === 'success') location.reload(); 
-                        else { document.getElementById('loader').style.display = 'none'; customAlert('錯誤：' + res.message, '新增失敗'); }
-                    }).catch(() => { document.getElementById('loader').style.display = 'none'; showToast('連線異常'); });
-                }
-        
-                function triggerUpload(slot) {
-                    currentUploadSlot = slot;
-                    document.getElementById('file-uploader').value = '';
-                    document.getElementById('file-uploader').click();
-                }
-        
-                document.getElementById('file-uploader').onchange = function(e) {
-                    let file = e.target.files[0]; if (!file) return;
-                    let reader = new FileReader();
-                    reader.onload = function(event) {
-                        let image = document.getElementById('crop-image');
-                        image.src = event.target.result;
-                        document.getElementById('crop-modal').classList.remove('hidden');
-                        if (cropper) cropper.destroy(); 
-                        cropper = new Cropper(image, { aspectRatio: 16 / 9, viewMode: 2, autoCropArea: 0.9, background: false });
-                    };
-                    reader.readAsDataURL(file);
-                };
-        
-                function cancelCrop() { document.getElementById('crop-modal').classList.add('hidden'); if (cropper) cropper.destroy(); }
-        
-                function confirmCrop() {
-                    if (!cropper) return;
-                    let canvas = cropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
-                    let base64 = canvas.toDataURL('image/jpeg', 0.8);
-                    cancelCrop();
-                    if (currentUploadSlot === 'new-main') {
-                        newCarBase64 = base64;
-                        document.getElementById('nc-photo').style.backgroundImage = `url('${base64}')`;
-                        document.getElementById('nc-photo').innerHTML = '';
-                    } else {
-                        document.getElementById('p-' + currentUploadSlot).style.backgroundImage = `url('${base64}')`;
-                        document.getElementById('p-' + currentUploadSlot).innerHTML = '';
-                        showToast("雲端上傳中...");
-                        const plate = document.getElementById('b-plate').value;
-                        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "uploadPhoto", plate: plate, slot: currentUploadSlot, imageBase64: base64 }) })
-                        .then(res => res.json()).then(res => {
-                            let car = userCars.find(c => c.plate === plate);
-                            if(currentUploadSlot==='main') car.photoMain = res.data; else car['photo'+currentUploadSlot] = res.data;
-                            showToast("照片上傳成功！");
-                        });
-                    }
-                }
-        
-                function initBookingForm() {
-                    const select = document.getElementById('b-plate');
-                    select.innerHTML = '';
-                    userCars.forEach(car => { select.innerHTML += `<option value="${car.plate}">${car.plate} (${car.brand})</option>`; });
-                    renderCarPhotos();
-                    document.getElementById('select-car-section').classList.remove('hidden');
-                    document.getElementById('btn-cancel-nc').style.display = 'block';
-                }
-        
-                function renderCarPhotos() {
-                    const plate = document.getElementById('b-plate').value;
-                    const car = userCars.find(c => c.plate === plate);
-                    const setPhoto = (id, url, text) => {
-                        const el = document.getElementById(id);
-                        if (url) { el.style.backgroundImage = `url('${url}')`; el.innerHTML = ''; } 
-                        else { el.style.backgroundImage = id === 'p-main' ? `url('${DEFAULT_IMG}')` : 'none'; el.innerHTML = id === 'p-main' ? '' : text; }
-                    };
-                    setPhoto('p-main', car.photoMain, '+ 愛車主視覺');
-                    setPhoto('p-1', car.photo1, '+ 車頭細節'); setPhoto('p-2', car.photo2, '+ 側邊細節');
-                    setPhoto('p-3', car.photo3, '+ 車尾細節'); setPhoto('p-4', car.photo4, '+ 內裝細節');
-                    
-                    updateServiceLogic(); 
-                }
-        
-                function changeMonth(offset) {
-                    currentCalMonth += offset;
-                    if (currentCalMonth > 11) { currentCalMonth = 0; currentCalYear++; }
-                    if (currentCalMonth < 0) { currentCalMonth = 11; currentCalYear--; }
-                    renderCalendar(currentCalYear, currentCalMonth);
-                    document.getElementById('time-selector').classList.add('hidden'); 
-                }
-        
-                function renderCalendar(year, month) {
-                    document.getElementById('cal-month-title').innerText = `${year} / ${String(month+1).padStart(2,'0')}`;
-                    const calBody = document.getElementById('cal-body');
-                    const now = new Date(); now.setHours(0,0,0,0);
-                    const firstDay = new Date(year, month, 1).getDay(); 
-                    const daysInMonth = new Date(year, month + 1, 0).getDate(); 
-                    let html = '';
-                    for (let i = 0; i < firstDay; i++) { html += `<div></div>`; }
-                    
-                    for (let d = 1; d <= daysInMonth; d++) {
-                        let cellDate = new Date(year, month, d);
-                        let dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                        
-                        let isPast = cellDate < now;
-                        let isSunday = cellDate.getDay() === 0;
-                        let cssClass = isPast || isSunday ? 'past' : '';
-                        
-                        if (!isPast && !isSunday && calendarOverview[dateStr] >= 900) cssClass += ' busy';
-        
-                        if(isPast || isSunday) html += `<div class="cal-day ${cssClass}">${d}</div>`;
-                        else html += `<div class="cal-day ${cssClass}" id="cal-day-${dateStr}" onclick="selectDate('${dateStr}')">${d}</div>`;
-                    }
-                    calBody.innerHTML = html;
-                }
-        
-                function selectDate(dateStr) {
-                    if (currentTotalDuration === 0) return showToast("請先選擇服務項目，系統才能計算空檔！");
-                    
-                    lastSelectedDate = dateStr;
-                    document.querySelectorAll('.cal-day').forEach(el => el.classList.remove('active'));
-                    document.getElementById('cal-day-' + dateStr).classList.add('active');
-        
-                    document.getElementById('time-slots-body').innerHTML = "<p style='color:white; grid-column: span 4; text-align:center;'>正在運算最佳時段...</p>";
-                    document.getElementById('time-selector').classList.remove('hidden');
-        
-                    fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "getSlots", date: dateStr, totalDuration: currentTotalDuration }) })
-                    .then(res => res.json()).then(res => {
-                        let html = '';
-                        if (!res.data || res.data.length === 0) {
-                            html = "<p style='color:var(--red); grid-column: span 4; text-align:center;'>抱歉，該日剩餘空檔不足以進行此項服務，請選擇其他日期。</p>";
-                        } else {
-                            res.data.forEach(time => {
-                                let displayStr = `${dateStr} ${time}`;
-                                let isSelected = selectedTimeSlots.includes(displayStr);
-                                html += `<div class="time-slot ${isSelected?'selected':''}" onclick="toggleTimeSlot('${displayStr}', this)">${time}</div>`;
-                            });
-                        }
-                        document.getElementById('time-slots-body').innerHTML = html;
-                    }).catch(err => { document.getElementById('time-slots-body').innerHTML = "<p style='color:red;'>連線錯誤</p>"; });
-                }
-        
-                function toggleTimeSlot(displayStr, el) {
-                    if (selectedTimeSlots.includes(displayStr)) {
-                        selectedTimeSlots = selectedTimeSlots.filter(t => t !== displayStr);
-                        el.classList.remove('selected');
-                    } else {
-                        if (selectedTimeSlots.length >= 3) return showToast("最多選擇 3 個時段！");
-                        selectedTimeSlots.push(displayStr);
-                        el.classList.add('selected');
-                    }
-                    selectedTimeSlots.sort();
-                    document.getElementById('selected-dates-text').innerHTML = selectedTimeSlots.length > 0 ? '<br>' + selectedTimeSlots.join('<br>') : '尚未選擇';
-                }
-        
-                function goToStep2() {
-                    if(currentServicesArray.length === 0) return showToast("請至少選擇 1 項服務！");
-                    if(selectedTimeSlots.length !== 3) {
-                        customAlert("為了讓系統能為您安排最佳空檔，請務必選滿「 3 個時段」！", "預約提示");
-                        return;
-                    }
-                    document.getElementById('c-plate').innerText = document.getElementById('b-plate').value;
-                    document.getElementById('c-duration').innerText = document.getElementById('total-time-text').innerText;
-                    document.getElementById('c-price-display').innerText = document.getElementById('realtime-price').innerText;
-                    document.getElementById('c-service').innerHTML = '<br>' + currentServicesArray.join('<br>');
-                    document.getElementById('c-dates').innerHTML = '<br>' + selectedTimeSlots.join('<br>');
-                    
-                    document.getElementById('view-step1').classList.add('hidden');
-                    document.getElementById('view-step2').classList.remove('hidden');
-                }
-        
-                function goBackStep1() {
-                    document.getElementById('view-step2').classList.add('hidden');
+                if (userRes.status === "error") throw new Error("GAS 錯誤: " + userRes.message);
+                if (calRes.status === "error") throw new Error("行事曆錯誤: " + calRes.message);
+
+                document.getElementById('loader').style.display = 'none';
+                calendarOverview = calRes.data || {};
+                carOptionsData = userRes.data.carOptions || [];
+                userCars = userRes.data.cars || [];
+                userHistory = userRes.data.history || [];
+                
+                // --- 判斷網址參數啟動對應的路由 ---
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('page') === 'dashboard') {
+                    document.getElementById('view-dashboard').classList.remove('hidden');
+                    initDashboard();
+                } else {
                     document.getElementById('view-step1').classList.remove('hidden');
+                    if (userCars.length === 0) {
+                        toggleInlineNewCar(true);
+                        document.getElementById('btn-cancel-nc').style.display = 'none';
+                    } else { initBookingForm(); }
+                    renderCalendar(currentCalYear, currentCalMonth);
                 }
-        
-                function closeApp() {
-                    try {
-                        if(liff.isInClient()) {
-                            liff.closeWindow(); 
-                        } else {
-                            document.getElementById('main-container').innerHTML = "<h2 style='text-align:center; color:var(--gold); margin-top: 50px;'>感謝！</h2><p style='text-align:center; color:white;'>請手動關閉此分頁，或返回 LINE 聊天室。</p>";
-                            window.close();
-                        }
-                    } catch(e) {
-                        document.getElementById('main-container').innerHTML = "<h2 style='text-align:center; color:var(--gold); margin-top: 50px;'>感謝！</h2><p style='text-align:center; color:white;'>請手動關閉此分頁，或返回 LINE 聊天室。</p>";
+            }).catch(err => {
+                document.getElementById('loader').style.display = 'flex';
+                document.getElementById('loader-text').innerHTML = `<span style="color:var(--red);">資料連線異常</span><br><span style="font-size:12px; color:#888;">${err.message || '請確認網路狀態'}</span>`;
+                console.error(err);
+            });
+        }
+
+        // ==========================================
+        // 模組：儀表板 (Dashboard) 渲染邏輯
+        // ==========================================
+        function initDashboard() {
+            const select = document.getElementById('dash-plate');
+            select.innerHTML = '';
+            if (userCars.length === 0) {
+                document.getElementById('dash-content').innerHTML = "<p style='text-align:center; color:#888;'>您目前還沒有建立車庫資料。</p>";
+                return;
+            }
+            userCars.forEach(car => { select.innerHTML += `<option value="${car.plate}">${car.plate}</option>`; });
+            renderDashboard();
+        }
+
+        function renderDashboard() {
+            const plate = document.getElementById('dash-plate').value;
+            const car = userCars.find(c => c.plate === plate);
+            document.getElementById('dash-img').src = car.photoMain || DEFAULT_IMG;
+            
+            const history = userHistory.filter(h => h.plate === plate);
+            const contentDiv = document.getElementById('dash-content');
+            
+            if (history.length === 0) {
+                contentDiv.innerHTML = "<div class='dash-box'><p style='margin:0; color:#888;'>該車輛尚無保養紀錄。</p></div>";
+                return;
+            }
+            
+            let html = "";
+            const latest = history[0]; 
+            
+            html += `<div class="dash-box">
+                        <div style="font-size:12px; color:#888; margin-bottom:5px;">上次保養日期：${latest.date}</div>
+                        <div style="font-size:18px; color:var(--gold); font-weight:bold;">${latest.service}</div>
+                     </div>`;
+                     
+            if (latest.nextReminder) {
+                const today = new Date();
+                const nextDate = new Date(latest.nextReminder.replace(/-/g, '/'));
+                const diffTime = nextDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                // 計算鍍膜進度 (預設效期 90 天)
+                let percentage = Math.max(0, Math.min(100, (diffDays / 90) * 100));
+                
+                html += `<div class="dash-box" style="border-left-color: #1DB446;">
+                            <div style="display:flex; justify-content:space-between; color:#fff; font-size:14px; margin-bottom:10px;">
+                                <span>🛡️ 鍍膜防護力</span>
+                                <span style="color:var(--gold); font-weight:bold;">尚餘 ${diffDays > 0 ? diffDays : 0} 天</span>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-bar" style="width: ${percentage}%;"></div>
+                            </div>
+                            <div style="font-size:11px; color:#888; margin-top:8px; text-align:right;">建議下次進廠：${latest.nextReminder}</div>
+                         </div>`;
+            }
+            
+            contentDiv.innerHTML = html;
+        }
+
+        // ==========================================
+        // 模組：預約系統邏輯 (包含防呆)
+        // ==========================================
+        function addServiceRow() {
+            const container = document.getElementById('service-container');
+            if (container.children.length >= 5) return showToast("最多選擇 5 項服務");
+            const newRow = document.createElement('div');
+            newRow.className = "service-row";
+            newRow.innerHTML = container.children[0].innerHTML.replace('</select>', '</select><button class="btn-remove" onclick="removeServiceRow(this)">✕</button>');
+            newRow.querySelector('select').value = ""; 
+            container.appendChild(newRow);
+            updateServiceLogic();
+        }
+
+        function removeServiceRow(btn) {
+            btn.parentElement.remove();
+            updateServiceLogic();
+        }
+
+        function updateServiceLogic() {
+            const selects = Array.from(document.querySelectorAll('.service-select'));
+            let selectedValues = selects.map(s => s.value);
+
+            let maxWash = 0; let maxCoat = 0;
+            selectedValues.forEach(v => {
+                if (washLevels[v] > maxWash) maxWash = washLevels[v];
+                if (coatLevels[v] > maxCoat) maxCoat = coatLevels[v];
+            });
+
+            let totalTime = 0; let hasSpecialCoating = false;
+
+            selects.forEach((select, index) => {
+                // 自動清除被覆蓋的服務
+                if (select.value && washLevels[select.value] && washLevels[select.value] < maxWash) {
+                    select.value = ""; showToast("已自動為您整合包含在內的項目");
+                }
+                if (select.value && coatLevels[select.value] && coatLevels[select.value] < maxCoat) {
+                    select.value = ""; showToast("已自動為您整合包含在內的項目");
+                }
+
+                if (select.value === "精緻鍍膜") hasSpecialCoating = true;
+
+                const options = select.options;
+                for (let opt of options) {
+                    if (opt.value === "") continue;
+                    opt.disabled = false;
+                    opt.text = opt.text.replace(" (已包含)", "").replace(" (已選)", "");
+
+                    // 防呆：禁止重複選擇相同選項
+                    let isSelectedElsewhere = selects.some((otherSelect, otherIndex) => { return index !== otherIndex && otherSelect.value === opt.value && otherSelect.value !== ""; });
+
+                    if (isSelectedElsewhere) {
+                        opt.disabled = true; opt.text += " (已選)";
+                    } else if (washLevels[opt.value] && washLevels[opt.value] < maxWash) {
+                        opt.disabled = true; opt.text += " (已包含)";
+                    } else if (coatLevels[opt.value] && coatLevels[opt.value] < maxCoat) {
+                        opt.disabled = true; opt.text += " (已包含)";
                     }
                 }
-        
-                function submitFinalBooking() {
-                    document.getElementById('loader').style.display = 'flex';
-                    document.getElementById('loader-text').innerText = "送出預約中...";
-                    
-                    const bData = { 
-                        plate: document.getElementById('b-plate').value, 
-                        services: currentServicesArray, 
-                        selectedDates: selectedTimeSlots, 
-                        price: document.getElementById('realtime-price').innerText,
-                        totalDuration: currentTotalDuration
-                    };
-                    
-                    fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "submitBooking", userId: globalUserId, bookingData: bData }) })
-                    .then(() => { 
-                        document.getElementById('loader').style.display = 'none';
-                        const successHtml = `
-                            <div class="card" style="text-align:center; padding: 40px 20px;">
-                                <div style="font-size: 50px; margin-bottom: 20px;">✅</div>
-                                <h2 style="color:var(--gold); border:none; margin-bottom: 10px;">預約已送出</h2>
-                                <p style="color:#ccc; font-size:15px; margin-bottom: 30px;">您的預約單已傳送至店家後台，<br>審核通過後將會透過 LINE 通知您！</p>
-                                <button class="btn" onclick="closeApp()">完成並關閉</button>
-                            </div>`;
-                        document.getElementById('main-container').innerHTML = successHtml;
-                    }).catch(() => {
-                        document.getElementById('loader').style.display = 'none';
-                        showToast("連線異常，請稍後再試。");
+                
+                const selectedOpt = select.options[select.selectedIndex];
+                if (selectedOpt && selectedOpt.value !== "" && !selectedOpt.text.includes("(已包含)") && !selectedOpt.text.includes("(已選)")) {
+                    totalTime += parseInt(selectedOpt.dataset.time || 0);
+                }
+            });
+
+            currentServicesArray = Array.from(new Set(Array.from(selects).map(s => s.value).filter(v => v !== "")));
+            currentTotalDuration = totalTime;
+
+            let displayTime = "0 分鐘";
+            if (hasSpecialCoating) { displayTime = "1天 (需留車)"; currentTotalDuration = 540; }
+            else if (totalTime > 0) {
+                let h = Math.floor(totalTime / 60); let m = totalTime % 60;
+                displayTime = h > 0 ? (m > 0 ? `${h} 小時 ${m} 分鐘` : `${h} 小時`) : `${m} 分鐘`;
+            }
+
+            document.getElementById('total-time-text').innerText = displayTime;
+            fetchPrice();
+            
+            // 更動工時後，重新計算有空的時段
+            if(lastSelectedDate) {
+                document.getElementById('time-slots-body').innerHTML = "";
+                selectedTimeSlots = [];
+                document.getElementById('selected-dates-text').innerHTML = "尚未選擇";
+                selectDate(lastSelectedDate);
+            }
+        }
+
+        function fetchPrice() {
+            if(currentServicesArray.length === 0) { document.getElementById('realtime-price').innerText = "$0"; return; }
+            document.getElementById('realtime-price').innerText = "計算中...";
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "getQuote", plate: document.getElementById('b-plate').value, services: currentServicesArray }) })
+            .then(res => res.json()).then(res => { document.getElementById('realtime-price').innerText = res.data !== "現場評估報價" ? "$" + res.data : "現場評估報價"; });
+        }
+
+        // ==========================================
+        // 模組：車庫與上傳機制
+        // ==========================================
+        function toggleInlineNewCar(show) {
+            if (show) {
+                populateBrandDropdown();
+                document.getElementById('select-car-section').classList.add('hidden');
+                document.getElementById('inline-newcar-form').classList.remove('hidden');
+            } else {
+                document.getElementById('inline-newcar-form').classList.add('hidden');
+                document.getElementById('select-car-section').classList.remove('hidden');
+            }
+        }
+
+        function populateBrandDropdown() {
+            let brands = [...new Set(carOptionsData.map(o => o.brand))];
+            let html = '<option value="">請選擇廠牌</option>';
+            brands.forEach(b => html += `<option value="${b}">${b}</option>`);
+            html += '<option value="other">其他 (自行輸入)</option>';
+            document.getElementById('nc-brand').innerHTML = html;
+        }
+
+        function onBrandChange() {
+            let brand = document.getElementById('nc-brand').value;
+            let modelSel = document.getElementById('nc-model');
+            if (brand === 'other') {
+                document.getElementById('nc-brand-other').classList.remove('hidden');
+                document.getElementById('nc-model-other').classList.remove('hidden');
+                modelSel.innerHTML = '<option value="other">其他 (自行輸入)</option>';
+            } else {
+                document.getElementById('nc-brand-other').classList.add('hidden');
+                document.getElementById('nc-model-other').classList.add('hidden');
+                let models = carOptionsData.filter(o => o.brand === brand);
+                let html = '<option value="">請選擇型號</option>';
+                models.forEach(m => html += `<option value="${m.model}">${m.model}</option>`);
+                html += '<option value="other">其他 (自行輸入)</option>';
+                modelSel.innerHTML = html;
+            }
+        }
+
+        function onModelChange() {
+            let modelSel = document.getElementById('nc-model');
+            if (modelSel.value === 'other') { document.getElementById('nc-model-other').classList.remove('hidden'); } 
+            else { document.getElementById('nc-model-other').classList.add('hidden'); }
+        }
+
+        function submitNewCar() {
+            const plate = document.getElementById('nc-plate').value.trim();
+            let brand = document.getElementById('nc-brand').value; if(brand === 'other') brand = document.getElementById('nc-brand-other').value.trim();
+            let model = document.getElementById('nc-model').value; if(model === 'other') model = document.getElementById('nc-model-other').value.trim();
+            if(!plate || !brand || !model) return showToast('請完整填寫車牌、廠牌與型號！');
+            
+            document.getElementById('loader').style.display = 'flex';
+            document.getElementById('loader-text').innerText = "建立車庫中...";
+            
+            const data = { lineName: globalLineName, plate: plate, brand: brand, model: model, imageBase64: newCarBase64 };
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "addCar", userId: globalUserId, carData: data }) })
+            .then(res => res.json()).then(res => {
+                if(res.status === 'success') location.reload(); 
+                else { document.getElementById('loader').style.display = 'none'; customAlert('錯誤：' + res.message, '新增失敗'); }
+            }).catch(() => { document.getElementById('loader').style.display = 'none'; showToast('連線異常'); });
+        }
+
+        function triggerUpload(slot) {
+            currentUploadSlot = slot;
+            document.getElementById('file-uploader').value = '';
+            document.getElementById('file-uploader').click();
+        }
+
+        document.getElementById('file-uploader').onchange = function(e) {
+            let file = e.target.files[0]; if (!file) return;
+            let reader = new FileReader();
+            reader.onload = function(event) {
+                let image = document.getElementById('crop-image');
+                image.src = event.target.result;
+                document.getElementById('crop-modal').classList.remove('hidden');
+                if (cropper) cropper.destroy(); 
+                cropper = new Cropper(image, { aspectRatio: 16 / 9, viewMode: 2, autoCropArea: 0.9, background: false });
+            };
+            reader.readAsDataURL(file);
+        };
+
+        function cancelCrop() { document.getElementById('crop-modal').classList.add('hidden'); if (cropper) cropper.destroy(); }
+
+        function confirmCrop() {
+            if (!cropper) return;
+            let canvas = cropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
+            let base64 = canvas.toDataURL('image/jpeg', 0.8);
+            cancelCrop();
+            if (currentUploadSlot === 'new-main') {
+                newCarBase64 = base64;
+                document.getElementById('nc-photo').style.backgroundImage = `url('${base64}')`;
+                document.getElementById('nc-photo').innerHTML = '';
+            } else {
+                document.getElementById('p-' + currentUploadSlot).style.backgroundImage = `url('${base64}')`;
+                document.getElementById('p-' + currentUploadSlot).innerHTML = '';
+                showToast("雲端上傳中...");
+                const plate = document.getElementById('b-plate').value;
+                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "uploadPhoto", plate: plate, slot: currentUploadSlot, imageBase64: base64 }) })
+                .then(res => res.json()).then(res => {
+                    let car = userCars.find(c => c.plate === plate);
+                    if(currentUploadSlot==='main') car.photoMain = res.data; else car['photo'+currentUploadSlot] = res.data;
+                    showToast("照片上傳成功！");
+                });
+            }
+        }
+
+        function initBookingForm() {
+            const select = document.getElementById('b-plate');
+            select.innerHTML = '';
+            userCars.forEach(car => { select.innerHTML += `<option value="${car.plate}">${car.plate} (${car.brand})</option>`; });
+            renderCarPhotos();
+            document.getElementById('select-car-section').classList.remove('hidden');
+            document.getElementById('btn-cancel-nc').style.display = 'block';
+        }
+
+        function renderCarPhotos() {
+            const plate = document.getElementById('b-plate').value;
+            const car = userCars.find(c => c.plate === plate);
+            const setPhoto = (id, url, text) => {
+                const el = document.getElementById(id);
+                if (url) { el.style.backgroundImage = `url('${url}')`; el.innerHTML = ''; } 
+                else { el.style.backgroundImage = id === 'p-main' ? `url('${DEFAULT_IMG}')` : 'none'; el.innerHTML = id === 'p-main' ? '' : text; }
+            };
+            setPhoto('p-main', car.photoMain, '+ 愛車主視覺');
+            setPhoto('p-1', car.photo1, '+ 車頭細節'); setPhoto('p-2', car.photo2, '+ 側邊細節');
+            setPhoto('p-3', car.photo3, '+ 車尾細節'); setPhoto('p-4', car.photo4, '+ 內裝細節');
+            
+            updateServiceLogic(); 
+        }
+
+        // ==========================================
+        // 模組：智慧日曆與時段渲染
+        // ==========================================
+        function changeMonth(offset) {
+            currentCalMonth += offset;
+            if (currentCalMonth > 11) { currentCalMonth = 0; currentCalYear++; }
+            if (currentCalMonth < 0) { currentCalMonth = 11; currentCalYear--; }
+            renderCalendar(currentCalYear, currentCalMonth);
+            document.getElementById('time-selector').classList.add('hidden'); 
+        }
+
+        function renderCalendar(year, month) {
+            document.getElementById('cal-month-title').innerText = `${year} / ${String(month+1).padStart(2,'0')}`;
+            const calBody = document.getElementById('cal-body');
+            const now = new Date(); now.setHours(0,0,0,0);
+            const firstDay = new Date(year, month, 1).getDay(); 
+            const daysInMonth = new Date(year, month + 1, 0).getDate(); 
+            let html = '';
+            for (let i = 0; i < firstDay; i++) { html += `<div></div>`; }
+            
+            for (let d = 1; d <= daysInMonth; d++) {
+                let cellDate = new Date(year, month, d);
+                let dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                
+                let isPast = cellDate < now;
+                let isSunday = cellDate.getDay() === 0;
+                let cssClass = isPast || isSunday ? 'past' : '';
+                
+                // 日曆大數據閾值 (雙車位滿載 = 1080分，超過900分變灰色)
+                if (!isPast && !isSunday && calendarOverview[dateStr] >= 900) cssClass += ' busy';
+
+                if(isPast || isSunday) html += `<div class="cal-day ${cssClass}">${d}</div>`;
+                else html += `<div class="cal-day ${cssClass}" id="cal-day-${dateStr}" onclick="selectDate('${dateStr}')">${d}</div>`;
+            }
+            calBody.innerHTML = html;
+        }
+
+        function selectDate(dateStr) {
+            if (currentTotalDuration === 0) return showToast("請先選擇服務項目，系統才能計算空檔！");
+            
+            lastSelectedDate = dateStr;
+            document.querySelectorAll('.cal-day').forEach(el => el.classList.remove('active'));
+            document.getElementById('cal-day-' + dateStr).classList.add('active');
+
+            document.getElementById('time-slots-body').innerHTML = "<p style='color:white; grid-column: span 4; text-align:center;'>正在運算最佳時段...</p>";
+            document.getElementById('time-selector').classList.remove('hidden');
+
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "getSlots", date: dateStr, totalDuration: currentTotalDuration }) })
+            .then(res => res.json()).then(res => {
+                let html = '';
+                if (!res.data || res.data.length === 0) {
+                    html = "<p style='color:var(--red); grid-column: span 4; text-align:center;'>抱歉，該日剩餘空檔不足以進行此項服務，請選擇其他日期。</p>";
+                } else {
+                    res.data.forEach(time => {
+                        let displayStr = `${dateStr} ${time}`;
+                        let isSelected = selectedTimeSlots.includes(displayStr);
+                        html += `<div class="time-slot ${isSelected?'selected':''}" onclick="toggleTimeSlot('${displayStr}', this)">${time}</div>`;
                     });
                 }
-            </script>
-        </body>
-        </html>
+                document.getElementById('time-slots-body').innerHTML = html;
+            }).catch(err => { document.getElementById('time-slots-body').innerHTML = "<p style='color:red;'>連線錯誤</p>"; });
+        }
+
+        function toggleTimeSlot(displayStr, el) {
+            if (selectedTimeSlots.includes(displayStr)) {
+                selectedTimeSlots = selectedTimeSlots.filter(t => t !== displayStr);
+                el.classList.remove('selected');
+            } else {
+                if (selectedTimeSlots.length >= 3) return showToast("最多選擇 3 個時段！");
+                selectedTimeSlots.push(displayStr);
+                el.classList.add('selected');
+            }
+            selectedTimeSlots.sort();
+            document.getElementById('selected-dates-text').innerHTML = selectedTimeSlots.length > 0 ? '<br>' + selectedTimeSlots.join('<br>') : '尚未選擇';
+        }
+
+        // ==========================================
+        // 模組：送出與關閉視窗邏輯
+        // ==========================================
+        function goToStep2() {
+            if(currentServicesArray.length === 0) return showToast("請至少選擇 1 項服務！");
+            if(selectedTimeSlots.length !== 3) {
+                customAlert("為了讓系統能為您安排最佳空檔，請務必選滿「 3 個時段」！", "預約提示");
+                return;
+            }
+            document.getElementById('c-plate').innerText = document.getElementById('b-plate').value;
+            document.getElementById('c-duration').innerText = document.getElementById('total-time-text').innerText;
+            document.getElementById('c-price-display').innerText = document.getElementById('realtime-price').innerText;
+            document.getElementById('c-service').innerHTML = '<br>' + currentServicesArray.join('<br>');
+            document.getElementById('c-dates').innerHTML = '<br>' + selectedTimeSlots.join('<br>');
+            
+            document.getElementById('view-step1').classList.add('hidden');
+            document.getElementById('view-step2').classList.remove('hidden');
+        }
+
+        function goBackStep1() {
+            document.getElementById('view-step2').classList.add('hidden');
+            document.getElementById('view-step1').classList.remove('hidden');
+        }
+
+        // 完美關閉機制
+        function closeApp() {
+            try {
+                if(liff.isInClient()) {
+                    liff.closeWindow(); 
+                } else {
+                    document.getElementById('main-container').innerHTML = "<h2 style='text-align:center; color:var(--gold); margin-top: 50px;'>感謝！</h2><p style='text-align:center; color:white;'>請手動關閉此分頁，或返回 LINE 聊天室。</p>";
+                    window.close();
+                }
+            } catch(e) {
+                document.getElementById('main-container').innerHTML = "<h2 style='text-align:center; color:var(--gold); margin-top: 50px;'>感謝！</h2><p style='text-align:center; color:white;'>請手動關閉此分頁，或返回 LINE 聊天室。</p>";
+            }
+        }
+
+        function submitFinalBooking() {
+            document.getElementById('loader').style.display = 'flex';
+            document.getElementById('loader-text').innerText = "送出預約中...";
+            
+            const bData = { 
+                plate: document.getElementById('b-plate').value, 
+                services: currentServicesArray, 
+                selectedDates: selectedTimeSlots, 
+                price: document.getElementById('realtime-price').innerText,
+                totalDuration: currentTotalDuration
+            };
+            
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "submitBooking", userId: globalUserId, bookingData: bData }) })
+            .then(() => { 
+                document.getElementById('loader').style.display = 'none';
+                const successHtml = `
+                    <div class="card" style="text-align:center; padding: 40px 20px;">
+                        <div style="font-size: 50px; margin-bottom: 20px;">✅</div>
+                        <h2 style="color:var(--gold); border:none; margin-bottom: 10px;">預約已送出</h2>
+                        <p style="color:#ccc; font-size:15px; margin-bottom: 30px;">您的預約單已傳送至店家後台，<br>審核通過後將會透過 LINE 通知您！</p>
+                        <button class="btn" onclick="closeApp()">完成並關閉</button>
+                    </div>`;
+                document.getElementById('main-container').innerHTML = successHtml;
+            }).catch(() => {
+                document.getElementById('loader').style.display = 'none';
+                showToast("連線異常，請稍後再試。");
+            });
+        }
     </script>
 </body>
 </html>
