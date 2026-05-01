@@ -57,7 +57,6 @@
         .img-wrapper { position: relative; max-width: 100%; display: flex; justify-content: center; align-items: center;}
         .close-circle { position: absolute; top: -12px; right: -12px; background: var(--red); color: #fff; border: 2px solid #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 20px; font-weight: bold; line-height: 1; padding: 0; z-index: 2001; cursor: pointer;}
         
-        /* 客製化提示彈窗 (取代原生的 alert) */
         #custom-alert { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 3000; display: flex; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;}
         .alert-box { background: #111; border: 1px solid var(--gold); border-radius: 8px; padding: 25px; text-align: center; width: 100%; max-width: 320px; }
         .alert-title { color: var(--gold); font-size: 18px; margin-top: 0; margin-bottom: 15px; border-bottom: 1px dashed #333; padding-bottom: 10px; }
@@ -72,7 +71,6 @@
     </div>
     <div id="toast">處理中...</div>
     
-    <!-- 客製化彈窗 -->
     <div id="custom-alert" class="hidden">
         <div class="alert-box">
             <h3 class="alert-title" id="custom-alert-title">提示</h3>
@@ -163,14 +161,14 @@
                 <div id="cal-body" class="calendar-grid" style="margin-top: 5px;"></div>
 
                 <div id="time-selector" class="hidden">
-                    <p style="margin-top:20px; font-size:14px; color:var(--gold);">智慧空檔搜尋結果 <span style="color:#888; font-size:12px;">(請務必選滿 3 個時段)</span></p>
+                    <p style="margin-top:20px; font-size:14px; color:var(--gold);">空檔搜尋結果 <span style="color:#888; font-size:12px;">(請務必選滿 3 個時段)</span></p>
                     <div id="time-slots-body" class="time-slot-container"></div>
                 </div>
                 <div style="margin-top: 15px; padding: 10px; background: #111; border-radius: 4px; font-size: 13px;">
                     已選時段：<br><span id="selected-dates-text" style="color: var(--red); font-weight: bold;">尚未選擇</span>
                 </div>
                 
-                <button class="btn" onclick="goToStep2()" style="margin-top: 25px;">下一步：確認預約資訊</button>
+                <button class="btn" onclick="goToStep2()" style="margin-top: 25px;">確認預約資訊</button>
             </div>
         </div>
 
@@ -210,9 +208,9 @@
 
     <script>
         // ==========================================
-        // 🚨 系統設定區 (請務必填寫)
+        // 🚨 系統設定區
         // ==========================================
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxhwx02NuWhE6eQeu-mOgH_thqL8aRktkhMPkdO_V436frTAuCdhKKU5CCe46wkIFv9NQ/exec'; 
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxdoHjRzes_NIZAy6plCLPkYFSwWuJCFMI0itjywmZaqCtBzhduTc9QRLc6MN_BKWh4Qg/exec'; 
         const LIFF_ID = '2008811649-QZq68T5c'; 
         const DEFAULT_IMG = 'https://via.placeholder.com/800x400/111111/d1c1a5?text=NO+IMAGE';
 
@@ -239,7 +237,6 @@
             setTimeout(() => t.classList.remove('show'), 3000);
         }
 
-        // 客製化提示視窗 (取代 alert)
         function customAlert(msg, title = "系統提示") {
             document.getElementById('custom-alert-title').innerText = title;
             document.getElementById('custom-alert-msg').innerText = msg;
@@ -254,7 +251,7 @@
                     fetchUserData();
                 });
             }).catch(err => { 
-                document.getElementById('loader-text').innerHTML = '<span style="color:var(--red);">系統載入失敗</span><br><span style="font-size:12px; color:#888;">請確認您是在 LINE APP 中開啟此連結<br>或檢查 LIFF ID 設定是否正確。</span>';
+                document.getElementById('loader-text').innerHTML = '<span style="color:var(--red);">系統載入失敗</span><br><span style="font-size:12px; color:#888;">請確認您是在 LINE APP 中開啟此連結。</span>';
             });
             
             const plateInput = document.getElementById('nc-plate');
@@ -306,9 +303,12 @@
             updateServiceLogic();
         }
 
+        // ==========================================
+        // 動態服務防呆邏輯 (包含不可重複選擇)
+        // ==========================================
         function updateServiceLogic() {
-            const selects = document.querySelectorAll('.service-select');
-            let selectedValues = Array.from(selects).map(s => s.value);
+            const selects = Array.from(document.querySelectorAll('.service-select'));
+            let selectedValues = selects.map(s => s.value);
 
             let maxWash = 0; let maxCoat = 0;
             selectedValues.forEach(v => {
@@ -319,7 +319,8 @@
             let totalTime = 0;
             let hasSpecialCoating = false;
 
-            selects.forEach(select => {
+            selects.forEach((select, index) => {
+                // 1. 自動清除被覆蓋的服務
                 if (select.value && washLevels[select.value] && washLevels[select.value] < maxWash) {
                     select.value = ""; showToast("已自動移除較低階的服務");
                 }
@@ -333,18 +334,27 @@
                 for (let opt of options) {
                     if (opt.value === "") continue;
                     opt.disabled = false;
-                    opt.text = opt.text.replace(" (已包含)", "");
+                    opt.text = opt.text.replace(" (已包含)", "").replace(" (已選)", "");
 
-                    if (washLevels[opt.value] && washLevels[opt.value] < maxWash) {
+                    // 2. 檢查是否在「其他下拉選單」已經被選過了
+                    let isSelectedElsewhere = selects.some((otherSelect, otherIndex) => {
+                        return index !== otherIndex && otherSelect.value === opt.value && otherSelect.value !== "";
+                    });
+
+                    // 3. 執行停用邏輯
+                    if (isSelectedElsewhere) {
+                        opt.disabled = true;
+                        opt.text += " (已選)";
+                    } else if (washLevels[opt.value] && washLevels[opt.value] < maxWash) {
                         opt.disabled = true; opt.text += " (已包含)";
-                    }
-                    if (coatLevels[opt.value] && coatLevels[opt.value] < maxCoat) {
+                    } else if (coatLevels[opt.value] && coatLevels[opt.value] < maxCoat) {
                         opt.disabled = true; opt.text += " (已包含)";
                     }
                 }
                 
+                // 4. 加總工時
                 const selectedOpt = select.options[select.selectedIndex];
-                if (selectedOpt && selectedOpt.value !== "" && !selectedOpt.text.includes("(已包含)")) {
+                if (selectedOpt && selectedOpt.value !== "" && !selectedOpt.text.includes("(已包含)") && !selectedOpt.text.includes("(已選)")) {
                     totalTime += parseInt(selectedOpt.dataset.time || 0);
                 }
             });
@@ -361,7 +371,6 @@
             }
 
             document.getElementById('total-time-text').innerText = displayTime;
-            
             fetchPrice();
             
             if(lastSelectedDate) {
@@ -373,19 +382,14 @@
         }
 
         function fetchPrice() {
-            if(currentServicesArray.length === 0) {
-                document.getElementById('realtime-price').innerText = "$0";
-                return;
-            }
+            if(currentServicesArray.length === 0) { document.getElementById('realtime-price').innerText = "$0"; return; }
             document.getElementById('realtime-price').innerText = "計算中...";
             fetch(GAS_URL, { 
                 method: 'POST', 
                 body: JSON.stringify({ action: "getQuote", plate: document.getElementById('b-plate').value, services: currentServicesArray }) 
             })
             .then(res => res.json())
-            .then(res => {
-                document.getElementById('realtime-price').innerText = res.data !== "現場評估報價" ? "$" + res.data : "現場評估報價";
-            });
+            .then(res => { document.getElementById('realtime-price').innerText = res.data !== "現場評估報價" ? "$" + res.data : "現場評估報價"; });
         }
 
         // --- 內嵌新增車庫 --- 
@@ -618,6 +622,19 @@
             document.getElementById('view-step1').classList.remove('hidden');
         }
 
+        // --- 關閉視窗邏輯 ---
+        function closeApp() {
+            try {
+                if(liff.isInClient()) {
+                    liff.closeWindow(); 
+                } else {
+                    document.getElementById('main-container').innerHTML = "<h2 style='text-align:center; color:white; margin-top: 50px;'>預約程序已結束，請手動關閉此頁面。</h2>";
+                }
+            } catch(e) {
+                document.getElementById('main-container').innerHTML = "<h2 style='text-align:center; color:white; margin-top: 50px;'>預約程序已結束，請手動關閉此頁面。</h2>";
+            }
+        }
+
         function submitFinalBooking() {
             document.getElementById('loader').style.display = 'flex';
             document.getElementById('loader-text').innerText = "送出預約中...";
@@ -634,7 +651,7 @@
             .then(() => { 
                 document.getElementById('loader').style.display = 'none';
                 
-                // 優化後的成功畫面 (不使用 alert)
+                // 優化後的成功畫面 (不再呼叫 window.close() 避免瀏覽器警告)
                 const successHtml = `
                     <div class="card" style="text-align:center; padding: 40px 20px;">
                         <div style="font-size: 50px; margin-bottom: 20px;">✅</div>
@@ -642,7 +659,7 @@
                         <p style="color:#ccc; font-size:15px; margin-bottom: 30px;">
                             您的預約單已傳送至店家後台，<br>審核通過後將會透過 LINE 通知您！
                         </p>
-                        <button class="btn" onclick="liff.closeWindow(); window.close();">關閉視窗</button>
+                        <button class="btn" onclick="closeApp()">完成並關閉</button>
                     </div>
                 `;
                 document.getElementById('main-container').innerHTML = successHtml;
