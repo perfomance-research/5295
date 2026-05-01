@@ -43,7 +43,7 @@
         .service-row select { margin-top: 0; flex: 1; }
         .btn-remove { background: transparent; border: 1px solid var(--red); color: var(--red); padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; }
 
-        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,5,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; color: var(--gold); }
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,5,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; color: var(--gold); text-align: center; padding: 20px;}
         #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(217, 33, 40, 0.9); color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 14px; z-index: 10000; opacity: 0; transition: 0.3s; pointer-events: none; font-weight: bold;}
         #toast.show { opacity: 1; }
 
@@ -56,15 +56,30 @@
         #pricelist-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: flex; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box;}
         .img-wrapper { position: relative; max-width: 100%; display: flex; justify-content: center; align-items: center;}
         .close-circle { position: absolute; top: -12px; right: -12px; background: var(--red); color: #fff; border: 2px solid #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 20px; font-weight: bold; line-height: 1; padding: 0; z-index: 2001; cursor: pointer;}
+        
+        /* 客製化提示彈窗 (取代原生的 alert) */
+        #custom-alert { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 3000; display: flex; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;}
+        .alert-box { background: #111; border: 1px solid var(--gold); border-radius: 8px; padding: 25px; text-align: center; width: 100%; max-width: 320px; }
+        .alert-title { color: var(--gold); font-size: 18px; margin-top: 0; margin-bottom: 15px; border-bottom: 1px dashed #333; padding-bottom: 10px; }
+        .alert-msg { color: #fff; font-size: 15px; line-height: 1.5; margin-bottom: 25px; }
     </style>
 </head>
 <body>
 
     <div id="loader">
         <img src="./logo.png" alt="5295 STUDIO" style="width: 150px; margin-bottom: 20px;">
-        <p>系統載入中...</p>
+        <p id="loader-text">系統載入中...</p>
     </div>
     <div id="toast">處理中...</div>
+    
+    <!-- 客製化彈窗 -->
+    <div id="custom-alert" class="hidden">
+        <div class="alert-box">
+            <h3 class="alert-title" id="custom-alert-title">提示</h3>
+            <div class="alert-msg" id="custom-alert-msg">訊息內容</div>
+            <button class="btn" style="margin-top: 0; padding: 10px;" onclick="document.getElementById('custom-alert').classList.add('hidden')">確定</button>
+        </div>
+    </div>
     
     <header><img src="./logo.png" alt="5295 STUDIO" class="logo-img"></header>
 
@@ -109,7 +124,7 @@
                 </div>
             </div>
 
-            <!-- 動態服務選擇區塊 (加入即時金額顯示) -->
+            <!-- 動態服務選擇區塊 -->
             <div class="card">
                 <h2>2. 服務項目 <span style="font-size: 10px; color:#888;">(最多選 5 項)</span></h2>
                 <button type="button" class="btn btn-outline" style="padding: 10px; font-size: 13px; margin-bottom: 15px; margin-top: 0;" onclick="document.getElementById('pricelist-modal').classList.remove('hidden')">📋 查看詳細價目表</button>
@@ -195,10 +210,10 @@
 
     <script>
         // ==========================================
-        // 🚨 系統設定區
+        // 🚨 系統設定區 (請務必填寫)
         // ==========================================
-        const GAS_URL = '請貼上你最新的_GAS_網址'; 
-        const LIFF_ID = 'https://script.google.com/macros/s/AKfycbxhwx02NuWhE6eQeu-mOgH_thqL8aRktkhMPkdO_V436frTAuCdhKKU5CCe46wkIFv9NQ/exec'; 
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxhwx02NuWhE6eQeu-mOgH_thqL8aRktkhMPkdO_V436frTAuCdhKKU5CCe46wkIFv9NQ/exec'; 
+        const LIFF_ID = '2008811649-QZq68T5c'; 
         const DEFAULT_IMG = 'https://via.placeholder.com/800x400/111111/d1c1a5?text=NO+IMAGE';
 
         let globalUserId = ""; let globalLineName = "";
@@ -224,6 +239,13 @@
             setTimeout(() => t.classList.remove('show'), 3000);
         }
 
+        // 客製化提示視窗 (取代 alert)
+        function customAlert(msg, title = "系統提示") {
+            document.getElementById('custom-alert-title').innerText = title;
+            document.getElementById('custom-alert-msg').innerText = msg;
+            document.getElementById('custom-alert').classList.remove('hidden');
+        }
+
         window.onload = function() {
             liff.init({ liffId: LIFF_ID }).then(() => {
                 if (!liff.isLoggedIn()) { liff.login(); return; }
@@ -231,7 +253,9 @@
                     globalUserId = p.userId; globalLineName = p.displayName;
                     fetchUserData();
                 });
-            }).catch(err => { alert('系統載入失敗，請確認在 LINE 中開啟'); });
+            }).catch(err => { 
+                document.getElementById('loader-text').innerHTML = '<span style="color:var(--red);">系統載入失敗</span><br><span style="font-size:12px; color:#888;">請確認您是在 LINE APP 中開啟此連結<br>或檢查 LIFF ID 設定是否正確。</span>';
+            });
             
             const plateInput = document.getElementById('nc-plate');
             if (plateInput) {
@@ -262,7 +286,7 @@
                 } else { initBookingForm(); }
                 renderCalendar(currentCalYear, currentCalMonth);
             }).catch(err => {
-                document.getElementById('loader').style.display = 'none'; alert('資料連線異常');
+                document.getElementById('loader-text').innerHTML = '<span style="color:var(--red);">資料連線異常</span><br><span style="font-size:12px; color:#888;">請重新整理頁面或聯繫客服。</span>';
             });
         }
 
@@ -338,7 +362,6 @@
 
             document.getElementById('total-time-text').innerText = displayTime;
             
-            // 即時計算金額
             fetchPrice();
             
             if(lastSelectedDate) {
@@ -413,15 +436,17 @@
             const plate = document.getElementById('nc-plate').value.trim();
             let brand = document.getElementById('nc-brand').value; if(brand === 'other') brand = document.getElementById('nc-brand-other').value.trim();
             let model = document.getElementById('nc-model').value; if(model === 'other') model = document.getElementById('nc-model-other').value.trim();
-            if(!plate || !brand || !model) return alert('請完整填寫車牌、廠牌與型號！');
+            if(!plate || !brand || !model) return showToast('請完整填寫車牌、廠牌與型號！');
+            
             document.getElementById('loader').style.display = 'flex';
+            document.getElementById('loader-text').innerText = "建立車庫中...";
             
             const data = { lineName: globalLineName, plate: plate, brand: brand, model: model, imageBase64: newCarBase64 };
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "addCar", userId: globalUserId, carData: data }) })
             .then(res => res.json()).then(res => {
                 if(res.status === 'success') location.reload(); 
-                else { document.getElementById('loader').style.display = 'none'; alert('錯誤：' + res.message); }
-            }).catch(() => { document.getElementById('loader').style.display = 'none'; alert('連線異常'); });
+                else { document.getElementById('loader').style.display = 'none'; customAlert('錯誤：' + res.message, '新增失敗'); }
+            }).catch(() => { document.getElementById('loader').style.display = 'none'; showToast('連線異常'); });
         }
 
         function triggerUpload(slot) {
@@ -489,7 +514,7 @@
             setPhoto('p-1', car.photo1, '+ 車頭細節'); setPhoto('p-2', car.photo2, '+ 側邊細節');
             setPhoto('p-3', car.photo3, '+ 車尾細節'); setPhoto('p-4', car.photo4, '+ 內裝細節');
             
-            updateServiceLogic(); // 切換車輛時，重新計算該車輛的金額
+            updateServiceLogic(); 
         }
 
         function changeMonth(offset) {
@@ -570,12 +595,11 @@
             document.getElementById('selected-dates-text').innerHTML = selectedTimeSlots.length > 0 ? '<br>' + selectedTimeSlots.join('<br>') : '尚未選擇';
         }
 
-        // --- 強制選滿 3 個時段 ---
         function goToStep2() {
             if(currentServicesArray.length === 0) return showToast("請至少選擇 1 項服務！");
             
             if(selectedTimeSlots.length !== 3) {
-                alert("為了讓系統能為您安排最佳空檔，請務必選滿「 3 個時段」！");
+                customAlert("為了讓系統能為您安排最佳空檔，請務必選滿「 3 個時段」！", "預約提示");
                 return;
             }
             
@@ -596,6 +620,8 @@
 
         function submitFinalBooking() {
             document.getElementById('loader').style.display = 'flex';
+            document.getElementById('loader-text').innerText = "送出預約中...";
+            
             const bData = { 
                 plate: document.getElementById('b-plate').value, 
                 services: currentServicesArray, 
@@ -606,18 +632,23 @@
             
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "submitBooking", userId: globalUserId, bookingData: bData }) })
             .then(() => { 
-                alert('預約送出成功！店家將盡快為您確認。'); 
+                document.getElementById('loader').style.display = 'none';
                 
-                // 防呆機制：若不是在 LINE 中開啟，則跳出提示並手動隱藏畫面
-                try {
-                    if(liff.isInClient()) {
-                        liff.closeWindow(); 
-                    } else {
-                        window.close(); // 外部瀏覽器嘗試關閉
-                        document.getElementById('main-container').innerHTML = "<h2 style='text-align:center; color:white; margin-top: 50px;'>預約已送出，您可以關閉此頁面。</h2>";
-                        document.getElementById('loader').style.display = 'none';
-                    }
-                } catch(e) {}
+                // 優化後的成功畫面 (不使用 alert)
+                const successHtml = `
+                    <div class="card" style="text-align:center; padding: 40px 20px;">
+                        <div style="font-size: 50px; margin-bottom: 20px;">✅</div>
+                        <h2 style="color:var(--gold); border:none; margin-bottom: 10px;">預約已送出</h2>
+                        <p style="color:#ccc; font-size:15px; margin-bottom: 30px;">
+                            您的預約單已傳送至店家後台，<br>審核通過後將會透過 LINE 通知您！
+                        </p>
+                        <button class="btn" onclick="liff.closeWindow(); window.close();">關閉視窗</button>
+                    </div>
+                `;
+                document.getElementById('main-container').innerHTML = successHtml;
+            }).catch(() => {
+                document.getElementById('loader').style.display = 'none';
+                showToast("連線異常，請稍後再試。");
             });
         }
     </script>
